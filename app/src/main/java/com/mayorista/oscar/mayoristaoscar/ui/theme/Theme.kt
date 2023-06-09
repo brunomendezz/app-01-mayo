@@ -2,6 +2,7 @@ package com.mayorista.oscar.mayoristaoscar.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import android.provider.CalendarContract.Colors
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -16,15 +17,15 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Red,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Mayo1,
+    secondary = Mayo2,
+    tertiary = Mayo3
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Red,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Mayo1,
+    secondary = Mayo2,
+    tertiary = Mayo3
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

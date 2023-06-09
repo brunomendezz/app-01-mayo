@@ -3,6 +3,10 @@
 
     <style name="Theme.MayoristaOscar" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">@color/mayo1</item>
+
+        <item name="colorPrimary">@color/mayo1</item>
+        <item name="colorPrimaryVariant">@color/mayo2</item>
+        <item name="colorOnPrimary">@color/white</item>
     </style>
 
 

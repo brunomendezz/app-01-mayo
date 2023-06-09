@@ -9,9 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mayorista.oscar.mayoristaoscar.data.Marcador
 import com.mayorista.oscar.mayoristaoscar.data.MarcadorRepository
-import kotlinx.coroutines.flow.MutableStateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 
+@HiltViewModel
 class MainViewModel:ViewModel() {
     val mardorRepository = MarcadorRepository()
     private val _ubicacionesRapidas = MutableLiveData(emptyList<Marcador>())
@@ -20,6 +21,7 @@ class MainViewModel:ViewModel() {
 
     private val _ubicacionMapa = MutableLiveData<Marcador>()
     val ubicacionMapa: LiveData<Marcador> = _ubicacionMapa
+
 
     init {
         viewModelScope.launch {
