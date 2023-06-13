@@ -1,19 +1,21 @@
 package com.mayorista.oscar.mayoristaoscar.ui.screens
 
-import android.graphics.drawable.shapes.RectShape
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,9 +47,11 @@ fun HomeScreen(navController: NavHostController) {
     Scaffold(
         topBar = { Toolbar(navController) }
     ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(it)){
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
 
             ContentHomeScreen()
 
@@ -87,7 +91,7 @@ fun Toolbar(navController: NavController) {
             TopAppBarActionButton(
                 imageVector = Icons.Rounded.LocationOn,
                 description = "Ubications Icon",
-                onClick = {navController.navigate(route = AppScreens.MapScreen.route)}
+                onClick = { navController.navigate(route = AppScreens.MapScreen.route) }
             )
         },
         modifier = Modifier.shadow(0.dp)
@@ -112,18 +116,23 @@ fun TopAppBarActionButton(
 
 
 @Composable
-fun ContentHomeScreen(){
-    Box(modifier =Modifier
-        .fillMaxSize()
-        .background(   brush = Brush.verticalGradient(
-            colors = listOf(Color(0xFFE0070F), Color(0xFFFFFFFF)),
-            startY = 0f,
-            endY = 200f))){
+fun ContentHomeScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFFE0070F), Color(0xFFFFFFFF)),
+                    startY = 0f,
+                    endY = 200f
+                )
+            )
+    ) {
         LazyColumn(
             Modifier
                 .align(Alignment.Center)
                 .fillMaxSize()
-          ){
+        ) {
 
             item {
                 Box(
@@ -140,50 +149,50 @@ fun ContentHomeScreen(){
                     CardPdf(Modifier.align(Alignment.TopCenter))
                 }
             }
-                item{
-                    Box(modifier =Modifier
+            item {
+                Box(
+                    modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White)
-                        ) {
-                        CardPdf(Modifier.align(Alignment.TopCenter))
-                    }
-                }
-            item{
-                Box(modifier =Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
                 ) {
                     CardPdf(Modifier.align(Alignment.TopCenter))
                 }
             }
-            item{
-                Box(modifier =Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
                 ) {
                     CardPdf(Modifier.align(Alignment.TopCenter))
                 }
             }
-            item{
-                Box(modifier =Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
                 ) {
                     CardPdf(Modifier.align(Alignment.TopCenter))
                 }
             }
-
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                ) {
+                    CardPdf(Modifier.align(Alignment.TopCenter))
+                }
             }
-
-
-
-
-
 
         }
 
 
     }
+
+
+}
 
 
 @Composable
@@ -193,12 +202,33 @@ fun CardPdf(modifier: Modifier) {
             .fillMaxWidth()
             .height(250.dp)
             .padding(15.dp)
-            .shadow(5.dp), // Ajusta el valor de elevación según tus preferencias
+            .shadow(8.dp), // Ajusta el valor de elevación según tus preferencias
+        shape = RoundedCornerShape(8.dp),
+      elevation = CardDefaults.elevatedCardElevation(8.dp),
+       colors = CardDefaults.cardColors(containerColor = Color.White)
+
     ) {
-        Text(
-            text = "SERA QUE PODREMOS LOGRAR NUESTRO OBJETIVO? NO LO SE .. SOLO SE QUE NO SE NADA",
-            textAlign = TextAlign.Center,
-            color = Color.Black
-        )
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "SERA QUE PODREMOS LOGRAR NUESTRO OBJETIVO? NO LO SE .. SOLO SE QUE NO SE NADA",
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = { /* Acción al hacer clic */ },
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, end = 8.dp)
+                ) {
+                    Text(text = "Actualizar lista de precios")
+                }
+            }
+        }
     }
 }
+
