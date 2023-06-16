@@ -1,7 +1,14 @@
 package com.mayorista.oscar.mayoristaoscar.ui.screens
 
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Rect
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,11 +18,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,26 +33,36 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
+import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
-
+fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
+    val bytes by viewModel.pdfDocument.observeAsState()
+    val context = LocalContext.current
     Scaffold(
         topBar = { Toolbar(navController) }
     ) {
@@ -53,12 +72,82 @@ fun HomeScreen(navController: NavHostController) {
                 .padding(it)
         ) {
 
-            ContentHomeScreen()
+
+            bytes?.let { it1 ->
+                ContentHomeScreen(bytes = it1) {
+                    openPdf(bytes!!, context)
+                }
+            }
+
 
         }
 
     }
+}
 
+@Composable
+fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
+    if (pdfByteArray != null) {
+        val file = File.createTempFile("temp", ".pdf")
+        val outputStream = FileOutputStream(file)
+        outputStream.write(pdfByteArray)
+        outputStream.close()
+
+        val parcelFileDescriptor =
+            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+        val renderer = PdfRenderer(parcelFileDescriptor)
+        val page = renderer.openPage(0)
+
+        val targetHeight = 400.dp // Altura deseada para la vista previa
+        val ratio = page.height.toFloat() / page.width.toFloat()
+        val targetWidth = (targetHeight.value / ratio).toInt()
+
+        val bitmap = Bitmap.createBitmap(
+            targetWidth,
+            targetHeight.value.toInt(),
+            Bitmap.Config.ARGB_8888
+        )
+        val renderQuality = PdfRenderer.Page.RENDER_MODE_FOR_PRINT
+        val renderRect = Rect(0, 0, targetWidth, targetHeight.value.toInt())
+        page.render(bitmap, renderRect, null, renderQuality)
+
+        val imageBitmap = bitmap.asImageBitmap()
+
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable { onClick() },
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            colors = CardDefaults.cardColors(Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(targetHeight),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = null,
+                    modifier = Modifier.size(targetWidth.dp, targetHeight),
+                    contentScale = ContentScale.FillWidth // Escala para ajustar el ancho de la imagen
+                )
+                Text(
+                    text = "Archivo PDF",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        page.close()
+        renderer.close()
+        parcelFileDescriptor.close()
+        file.delete()
+    } else {
+        // Manejar el caso cuando el PDF no está disponible
+        // Puedes mostrar un mensaje o realizar otra acción adecuada
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,15 +167,11 @@ fun Toolbar(navController: NavController) {
                     fontFamily = FontFamily.Default,
                     modifier = Modifier.padding(end = 2.dp)
                 )
-                /*Icon(
-                    painter = painterResource(R.mipmap.ic_launcher_foreground),
-                    contentDescription = "TODO",
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(100.dp)
-                )*/
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(Color.Red)/*TopAppBarDefaults.smallTopAppBarColors(containerColor = Blue)*/,
+        colors = topAppBarColors(
+            Color.Red
+        )/*TopAppBarDefaults.smallTopAppBarColors(containerColor = Blue)*/,
         actions = {
             TopAppBarActionButton(
                 imageVector = Icons.Rounded.LocationOn,
@@ -116,7 +201,10 @@ fun TopAppBarActionButton(
 
 
 @Composable
-fun ContentHomeScreen() {
+fun ContentHomeScreen(
+    bytes: ByteArray,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -138,6 +226,7 @@ fun ContentHomeScreen() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(Color(0xFFE0070F), Color(0xFFFFFFFF)),
@@ -146,45 +235,34 @@ fun ContentHomeScreen() {
                             )
                         )
                 ) {
-                    CardPdf(Modifier.align(Alignment.TopCenter))
+                    CardPdf(bytes = bytes) {
+                        onClick()
+                    }
+
                 }
             }
             item {
-                Box(
+                MercadoPagoCard(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                ) {
-                    CardPdf(Modifier.align(Alignment.TopCenter))
-                }
+                        .fillMaxSize()
+                        .padding(15.dp)
+                )
             }
             item {
-                Box(
+                MercadoPagoCard(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                ) {
-                    CardPdf(Modifier.align(Alignment.TopCenter))
-                }
+                        .fillMaxSize()
+                        .padding(15.dp)
+                )
             }
             item {
-                Box(
+                MercadoPagoCard(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                ) {
-                    CardPdf(Modifier.align(Alignment.TopCenter))
-                }
+                        .fillMaxSize()
+                        .padding(15.dp)
+                )
             }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                ) {
-                    CardPdf(Modifier.align(Alignment.TopCenter))
-                }
-            }
+
 
         }
 
@@ -196,39 +274,77 @@ fun ContentHomeScreen() {
 
 
 @Composable
-fun CardPdf(modifier: Modifier) {
-    Card(
-        modifier = modifier
+fun CardPdf(bytes: ByteArray, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
-            .padding(15.dp)
-            .shadow(8.dp), // Ajusta el valor de elevación según tus preferencias
-        shape = RoundedCornerShape(8.dp),
-      elevation = CardDefaults.elevatedCardElevation(8.dp),
-       colors = CardDefaults.cardColors(containerColor = Color.White)
-
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.elevatedCardElevation(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Text(
-                text = "SERA QUE PODREMOS LOGRAR NUESTRO OBJETIVO? NO LO SE .. SOLO SE QUE NO SE NADA",
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
             ) {
-                Button(
-                    onClick = { /* Acción al hacer clic */ },
-                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, end = 8.dp)
-                ) {
-                    Text(text = "Actualizar lista de precios")
-                }
+                MostrarVistaPreviaPDF(pdfByteArray = bytes) { onClick() }
             }
+
+            Button(
+                onClick = { },
+                modifier = Modifier
+                    .padding(top = 8.dp, bottom = 8.dp, end = 8.dp)
+                    .align(Alignment.End),
+                colors = ButtonDefaults.buttonColors(Color.Transparent)
+            ) {
+                Text(text = "Actualizar lista de precios", color = Color.Red)
+            }
+        }
+
+    }
+}
+
+@Composable
+fun MercadoPagoCard(modifier: Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.elevatedCardElevation(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Text(text = "CADA VEZ MAS CERCA! SERA QUE SERA POSIBLE ESTE OBJETIVO?? DIGAMEN ALGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO O O OO O O OO O OO OO O O O ")
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
+
+
+fun openPdf(bytes: ByteArray, context: Context) {
+    val file = File(context.cacheDir, "lista de precios.pdf")
+    file.writeBytes(bytes)
+
+    val uri = FileProvider.getUriForFile(
+        context,
+        context.packageName + ".fileprovider",
+        file
+    )
+
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "application/pdf")
+        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+
+    context.startActivity(intent)
+}
+
 

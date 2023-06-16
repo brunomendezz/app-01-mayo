@@ -1,7 +1,6 @@
 package com.mayorista.oscar.mayoristaoscar.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.core.splashscreen.SplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -21,7 +20,7 @@ fun AppNavigation(viewModel: MainViewModel) {
 
         composable(route = AppScreens.HomeScreen.route){
             viewModel.screenUbication = "home_screen"
-            HomeScreen(navController)
+            HomeScreen(navController,viewModel)
         }
         composable(route = AppScreens.MapScreen.route){
             viewModel.screenUbication = "map_screen"
