@@ -1,8 +1,10 @@
-package com.mayorista.oscar.mayoristaoscar.data
+package com.mayorista.oscar.mayoristaoscar.data.repos
 
 import com.google.android.gms.maps.model.LatLng
+import com.mayorista.oscar.mayoristaoscar.data.model.Marcador
+import javax.inject.Inject
 
-class MarcadorRepository {
+class MarcadorRepository @Inject constructor(){
 
     companion object UbicacionesDataProvider {
         var ubicaciones = mutableListOf(
@@ -14,7 +16,7 @@ class MarcadorRepository {
         return ubicaciones.toMutableList()
     }
 
-    fun borrarUbicacion(ubicacion:Marcador){
+    fun borrarUbicacion(ubicacion: Marcador){
         ubicaciones.remove(ubicacion)
     }
 

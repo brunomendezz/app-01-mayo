@@ -1,4 +1,4 @@
-package com.mayorista.oscar.mayoristaoscar.data
+package com.mayorista.oscar.mayoristaoscar.data.model
 
 import com.google.android.gms.maps.model.LatLng
 

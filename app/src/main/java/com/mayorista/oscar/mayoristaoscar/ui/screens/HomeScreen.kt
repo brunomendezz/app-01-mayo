@@ -85,71 +85,6 @@ fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
     }
 }
 
-@Composable
-fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
-    if (pdfByteArray != null) {
-        val file = File.createTempFile("temp", ".pdf")
-        val outputStream = FileOutputStream(file)
-        outputStream.write(pdfByteArray)
-        outputStream.close()
-
-        val parcelFileDescriptor =
-            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-        val renderer = PdfRenderer(parcelFileDescriptor)
-        val page = renderer.openPage(0)
-
-        val targetHeight = 400.dp // Altura deseada para la vista previa
-        val ratio = page.height.toFloat() / page.width.toFloat()
-        val targetWidth = (targetHeight.value / ratio).toInt()
-
-        val bitmap = Bitmap.createBitmap(
-            targetWidth,
-            targetHeight.value.toInt(),
-            Bitmap.Config.ARGB_8888
-        )
-        val renderQuality = PdfRenderer.Page.RENDER_MODE_FOR_PRINT
-        val renderRect = Rect(0, 0, targetWidth, targetHeight.value.toInt())
-        page.render(bitmap, renderRect, null, renderQuality)
-
-        val imageBitmap = bitmap.asImageBitmap()
-
-        Card(
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable { onClick() },
-            elevation = CardDefaults.elevatedCardElevation(4.dp),
-            colors = CardDefaults.cardColors(Color.White)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(targetHeight),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Image(
-                    bitmap = imageBitmap,
-                    contentDescription = null,
-                    modifier = Modifier.size(targetWidth.dp, targetHeight),
-                    contentScale = ContentScale.FillWidth // Escala para ajustar el ancho de la imagen
-                )
-                Text(
-                    text = "Archivo PDF",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        }
-
-        page.close()
-        renderer.close()
-        parcelFileDescriptor.close()
-        file.delete()
-    } else {
-        // Manejar el caso cuando el PDF no está disponible
-        // Puedes mostrar un mensaje o realizar otra acción adecuada
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Toolbar(navController: NavController) {
@@ -325,6 +260,74 @@ fun MercadoPagoCard(modifier: Modifier) {
 
             Spacer(modifier = Modifier.weight(1f))
         }
+    }
+}
+
+
+
+
+
+@Composable
+fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
+    if (pdfByteArray != null) {
+        val file = File.createTempFile("temp", ".pdf")
+        val outputStream = FileOutputStream(file)
+        outputStream.write(pdfByteArray)
+        outputStream.close()
+
+        val parcelFileDescriptor =
+            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+        val renderer = PdfRenderer(parcelFileDescriptor)
+        val page = renderer.openPage(0)
+
+        val targetHeight = 400.dp // Altura deseada para la vista previa
+        val ratio = page.height.toFloat() / page.width.toFloat()
+        val targetWidth = (targetHeight.value / ratio).toInt()
+
+        val bitmap = Bitmap.createBitmap(
+            targetWidth,
+            targetHeight.value.toInt(),
+            Bitmap.Config.ARGB_8888
+        )
+        val renderQuality = PdfRenderer.Page.RENDER_MODE_FOR_PRINT
+        val renderRect = Rect(0, 0, targetWidth, targetHeight.value.toInt())
+        page.render(bitmap, renderRect, null, renderQuality)
+
+        val imageBitmap = bitmap.asImageBitmap()
+
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable { onClick() },
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            colors = CardDefaults.cardColors(Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(targetHeight),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = null,
+                    modifier = Modifier.size(targetWidth.dp, targetHeight),
+                    contentScale = ContentScale.FillWidth // Escala para ajustar el ancho de la imagen
+                )
+                Text(
+                    text = "Archivo PDF",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        page.close()
+        renderer.close()
+        parcelFileDescriptor.close()
+        file.delete()
+    } else {
+        Text(text = "No hay una lista de precio disponible.")
     }
 }
 

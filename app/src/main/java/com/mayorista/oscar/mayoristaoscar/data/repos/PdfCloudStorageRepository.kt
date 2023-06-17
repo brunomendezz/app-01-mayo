@@ -1,38 +1,33 @@
 package com.mayorista.oscar.mayoristaoscar.data.repos
 
-import android.graphics.pdf.PdfDocument
-import android.graphics.pdf.PdfRenderer
-import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
-import com.mayorista.oscar.mayoristaoscar.data.PdfRepository
+import com.mayorista.oscar.mayoristaoscar.data.model.PdfModelMayo
 import kotlinx.coroutines.CompletableDeferred
-import java.io.ByteArrayInputStream
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import javax.inject.Inject
 
-class PdfCloudStorageRepository : PdfRepository {
+class PdfCloudStorageRepository @Inject constructor(var firebase : Firebase): PdfRepository {
 
-    override suspend fun getPdf(): ByteArray? {
-        val storage = Firebase.storage
+    override suspend fun getPdf(): PdfModelMayo {
         val gsReference =
-            storage.getReferenceFromUrl("gs://mayorista-oscar.appspot.com/Listas/1_Lista_Precios_09-06-2023.PDF")
+            firebase.storage.getReferenceFromUrl("gs://mayorista-oscar.appspot.com/Listas/lista.PDF")
 
-        val deferred = CompletableDeferred<ByteArray?>()
+        val deferred = CompletableDeferred<PdfModelMayo>()
 
         gsReference.getBytes(Long.MAX_VALUE)
             .addOnSuccessListener { bytes ->
-                Log.i("bruno", "getPdf: la llamada fue exitosa")
-                deferred.complete(bytes)
+                Log.i("bruno", "getPdf: la llamada fue exitosa, la busque en cloud")
+                deferred.complete(PdfModelMayo(0,bytes))
             }
             .addOnFailureListener { exception ->
                 Log.i("bruno", "getPdf: la llamada falló", exception)
-                deferred.complete(null)
+                deferred.complete(PdfModelMayo(0,ByteArray(3)))
             }
 
         return deferred.await()
     }
+
 }
 
 

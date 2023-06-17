@@ -1,6 +1,5 @@
 package com.mayorista.oscar.mayoristaoscar.ui.screens
 
-import android.util.Size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,24 +12,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -44,9 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
 import com.google.android.gms.maps.model.CameraPosition
@@ -58,9 +50,9 @@ import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
-import com.mayorista.oscar.mayoristaoscar.data.BottomNavItem
-import com.mayorista.oscar.mayoristaoscar.data.Marcador
-import com.mayorista.oscar.mayoristaoscar.data.MarcadorRepository
+import com.mayorista.oscar.mayoristaoscar.data.model.BottomNavItem
+import com.mayorista.oscar.mayoristaoscar.data.model.Marcador
+import com.mayorista.oscar.mayoristaoscar.data.repos.MarcadorRepository
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 
@@ -200,7 +192,7 @@ fun Bottombar(navController: NavController, viewModel: MainViewModel) {
 
 
 @Composable
-private fun selectorDeUbicacionesRegistradas(listaMarcadores: List<Marcador>,viewModel: MainViewModel): Marcador {
+private fun selectorDeUbicacionesRegistradas(listaMarcadores: List<Marcador>, viewModel: MainViewModel): Marcador {
 
     var mExpanded by remember { mutableStateOf(false) }
 
