@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "963662592242",
-    "project_id": "mayorista-oscar",
-    "storage_bucket": "mayorista-oscar.appspot.com"
+    "project_number": "1024167789965",
+    "project_id": "mayorista-oscar-4a2db",
+    "storage_bucket": "mayorista-oscar-4a2db.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:963662592242:android:6d69684dff955b4ef3386b",
+        "mobilesdk_app_id": "1:1024167789965:android:fd6d0f043a6b5257eda9c4",
         "android_client_info": {
           "package_name": "com.mayorista.oscar.mayoristaoscar"
         }
       },
       "oauth_client": [
         {
-          "client_id": "963662592242-6qfh75b1d28d49dn3v2aaf6sgm00oicm.apps.googleusercontent.com",
+          "client_id": "1024167789965-lueit5883blvnq85ekcutr5nego796sg.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB25iVli4U5r3AwU7doh7fDnvZ1C_yQvRQ"
+          "current_key": "AIzaSyB5Z6wIoi15WrlQGzaQMfCQoVlBMvvBYdM"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "963662592242-6qfh75b1d28d49dn3v2aaf6sgm00oicm.apps.googleusercontent.com",
+              "client_id": "1024167789965-lueit5883blvnq85ekcutr5nego796sg.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

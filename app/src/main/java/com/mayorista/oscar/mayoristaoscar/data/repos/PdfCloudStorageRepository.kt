@@ -11,7 +11,7 @@ class PdfCloudStorageRepository @Inject constructor(var firebase : Firebase): Pd
 
     override suspend fun getPdf(): PdfModelMayo {
         val gsReference =
-            firebase.storage.getReferenceFromUrl("gs://mayorista-oscar.appspot.com/Listas/lista.PDF")
+            firebase.storage.getReferenceFromUrl("gs://mayorista-oscar-4a2db.appspot.com/listas/lista.PDF")
 
         val deferred = CompletableDeferred<PdfModelMayo>()
 
