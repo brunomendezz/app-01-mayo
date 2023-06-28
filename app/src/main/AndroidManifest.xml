@@ -10,9 +10,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher_foreground"
+        android:icon="@mipmap/ic_mayooscar1_foreground"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_mayooscar1"
         android:supportsRtl="true"
         android:theme="@style/Theme.MayoristaOscar"
         tools:targetApi="31">
@@ -20,14 +20,7 @@
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyAoVm-7BWlDoAfiMFtHdecyAS2n-W_HWyc" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/fondocarga"/>
-        <!-- Set color used with incoming notification messages. This is used when no color is set for the incoming
-             notification message. See README(https://goo.gl/6BKBk7) for more. -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/mayo3" />
+
 
         <activity
             android:name=".MainActivity"
@@ -42,7 +35,8 @@
 
         <service
             android:name=".data.firebase.MyFirebaseMessagingService"
-            android:exported="true">
+            android:exported="false"
+            android:permission="TODO">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>

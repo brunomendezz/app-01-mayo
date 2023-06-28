@@ -27,8 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -94,7 +92,8 @@ fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
                 ContentHomeScreen(
                     bytes = it1,
                     onClick = { openPdf(bytes!!, context) },
-                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) })
+                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
+                    onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) })
             }
 
         }
@@ -158,6 +157,7 @@ fun ContentHomeScreen(
     bytes: ByteArray,
     onClick: () -> Unit,
     onClickSucursal: () -> Unit,
+    onClickVerTodos: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -166,7 +166,7 @@ fun ContentHomeScreen(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFFE0070F), Color(0xFFFFFFFF)),
                     startY = 0f,
-                    endY = 200f
+                    endY = 150f
                 )
             )
     ) {
@@ -180,7 +180,6 @@ fun ContentHomeScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(Color(0xFFE0070F), Color(0xFFFFFFFF)),
@@ -196,13 +195,34 @@ fun ContentHomeScreen(
                 }
             }
             item {
-                MarcaList()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize()
+                ) {
+                    MarcaList()
+                }
+
             }
             item {
-                NuestrasSucursalesCard(onClickSucursal)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize()
+                ) {
+                    NuestrasSucursalesCard(onClickSucursal)
+                }
+
             }
             item {
-                CardProductosEnOferta()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize()
+                ) {
+                    CardProductosEnOferta(onClickVerTodos)
+                }
+
             }
 
 
@@ -214,12 +234,6 @@ fun ContentHomeScreen(
 
 }
 
-@Composable
-fun LogoMayorista(align: Modifier) {
-    Image(painterResource(id = R.mipmap.ic_launcher_foreground),
-        contentDescription = "LOGO",
-    modifier = align)
-}
 
 
 @Composable
@@ -240,13 +254,12 @@ fun CardPdf(bytes: ByteArray, onClick: () -> Unit) {
 
             Text(
                 text = "Precios",
-                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(16.dp)
             )
             Divider(
                 modifier = Modifier
-                    .width(360.dp)
-                    .padding(horizontal = 16.dp), thickness = 2.dp
+                    .fillMaxWidth(), thickness = 1.dp
             )
 
             Box(
@@ -259,23 +272,30 @@ fun CardPdf(bytes: ByteArray, onClick: () -> Unit) {
 
             Row(modifier = Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
 
-                Button(
-                    onClick = { onClick() },
+                Text(
+                    text = "Abrir PDF",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        textDecoration = TextDecoration.Underline,
+                    ),
+                    color = Color.Red,
                     modifier = Modifier
-                        .padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
-                    colors = ButtonDefaults.buttonColors(Color.Transparent)
-                ) {
-                    Text(text = "Abrir PDF", color = Color.Red)
-                }
-
-                Button(
-                    onClick = { },
+                        .padding(16.dp)
+                        .clickable { onClick() },
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = "Actualizar lista",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        textDecoration = TextDecoration.Underline,
+                    ),
+                    color = Color.Red,
                     modifier = Modifier
-                        .padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
-                    colors = ButtonDefaults.buttonColors(Color.Transparent)
-                ) {
-                    Text(text = "Actualizar lista", color = Color.Red)
-                }
+                        .padding(16.dp)
+                        .clickable { },
+                    textAlign = TextAlign.Center,
+                )
 
             }
 
@@ -315,12 +335,12 @@ fun NuestrasSucursalesCard(onClick: () -> Unit) {
             ) {
                 Text(
                     text = "Sucursales",
-                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Conoce nuestras distintas sucursales",
-                    style = TextStyle(fontSize = 16.sp)
+                    style = TextStyle(fontSize = 15.sp)
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -438,7 +458,7 @@ fun MarcaList() {
 }
 
 @Composable
-fun CardProductosEnOferta() {
+fun CardProductosEnOferta(onClickVerTodos: () -> Unit) {
     val listaDeProductosEnOferta = listOf(
         ProductoModel(
             "Pan voglia", descuento = 10, fechaExpiracion = "26/06/2023", precio = 350.0,
@@ -472,15 +492,36 @@ fun CardProductosEnOferta() {
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
-                Modifier.padding(16.dp)
             ) {
-                Text(
-                    text = "Productos en oferta",
-                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Productos en oferta",
+                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
 
-                Divider(modifier = Modifier.width(360.dp), thickness = 2.dp)
+                    Text(
+                        text = "Ver todos",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            textDecoration = TextDecoration.Underline,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = Color.Red,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clickable { onClickVerTodos() },
+                        textAlign = TextAlign.Center,
+                    )
+                }
+
+
+                Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
             }
         }
 
@@ -521,16 +562,18 @@ fun ProductoCard(producto: ProductoModel) {
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
 
+
         Row() {
 
             Image(
                 painter = rememberAsyncImagePainter(model = producto.imagen),
                 contentDescription = "Imagen del producto",
                 modifier = Modifier
-                    .width(80.dp)
-                    .height(40.dp)
+                    .width(150.dp)
+                    .height(75.dp)
                     .clip(shape = RoundedCornerShape(8.dp))
-                    .align(Alignment.CenterVertically)
+                    .align(alignment = Alignment.CenterVertically)
+
             )
 
             Column(

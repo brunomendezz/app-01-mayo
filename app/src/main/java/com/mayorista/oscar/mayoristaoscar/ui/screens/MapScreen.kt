@@ -1,31 +1,31 @@
 package com.mayorista.oscar.mayoristaoscar.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.FloatingActionButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -34,26 +34,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
-import com.mayorista.oscar.mayoristaoscar.data.model.BottomNavItem
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.mayorista.oscar.mayoristaoscar.data.model.Marcador
 import com.mayorista.oscar.mayoristaoscar.data.repos.MarcadorRepository
-import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 
 @Composable
@@ -67,9 +69,11 @@ fun PantallaMapa(navController: NavController, viewModel: MainViewModel) {
 @Composable
 fun MapScreen(currentUbication: LatLng) {
 
-    val initialUbication = LatLng(-34.6690101, -58.5637967)
-    val mapProperties by remember { mutableStateOf(MapProperties(mapType = MapType.HYBRID)) }
+    val mapProperties by remember { mutableStateOf(MapProperties(mapType = MapType.NORMAL)) }
     val uiSettings by remember { mutableStateOf(MapUiSettings(rotationGesturesEnabled = false)) }
+    val posicionCamara = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(currentUbication, 15f)
+    }
 
     Box(
         Modifier
@@ -83,26 +87,22 @@ fun MapScreen(currentUbication: LatLng) {
     ) {
         GoogleMap(
             modifier = Modifier
-                .size(width = 380.dp, height = 500.dp)
+                .size(width = 380.dp, height = 450.dp)
                 .padding(8.dp),
-            cameraPositionState = cameraUpdate(initialUbication, currentUbication),
+            cameraPositionState = posicionCamara,
             properties = mapProperties,
             uiSettings = uiSettings
         ) {
+            LaunchedEffect(currentUbication) {
+
+                if (currentUbication != LatLng(0.0, 0.0))
+                    posicionCamara.animate(CameraUpdateFactory.newLatLng(currentUbication))
+            }
             Marker(state = MarkerState(currentUbication))
         }
     }
 }
 
-private fun cameraUpdate(current : LatLng, next : LatLng) : CameraPositionState {
-
-    if(current != next) {
-
-        return CameraPositionState(position = CameraPosition(next, 16.6f, 0f, 0f))
-    }
-
-    return CameraPositionState(position = CameraPosition(current, 16.6f, 0f, 0f))
-}
 @Composable
 fun ViewContainer(navController: NavController, viewModel: MainViewModel) {
 
@@ -113,77 +113,67 @@ fun ViewContainer(navController: NavController, viewModel: MainViewModel) {
 
     Scaffold(
         topBar = { Toolbar(navController) },
-        bottomBar = { Bottombar(navController, viewModel) }) {
+        bottomBar = {}) {
 
-
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues = it)
-                .padding(top = 15.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-
-
+        Box(modifier = Modifier.padding(it)){
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 mUbicacionSeleccionada =
                     selectorDeUbicacionesRegistradas(MarcadorRepository.ubicaciones, viewModel)
 
-
-
                 MapScreen(mUbicacionSeleccionada.latLng)
 
+                BotonComoLlegar(mUbicacionSeleccionada)
 
-
-                Spacer(modifier = Modifier.size(width = 0.dp, height = 5.dp))
-
-
+            }
         }
+
+
+
     }
 }
 
-
-
 @Composable
-fun Bottombar(navController: NavController, viewModel: MainViewModel) {
-    val bottomNavItem = listOf(
+fun BotonComoLlegar(mUbicacionSeleccionada: Marcador) {
+    val context = LocalContext.current
+    FloatingActionButton(
+        modifier = Modifier.padding(16.dp),
+        onClick = {
+            val ubicacion = "${mUbicacionSeleccionada.latLng.latitude},${mUbicacionSeleccionada.latLng.longitude}"
+            val intentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$ubicacion")
+            val intent = Intent(Intent.ACTION_VIEW, intentUri)
+            intent.setPackage("com.google.android.apps.maps")
 
-        BottomNavItem(
-            name = "Home",
-            route = "home_screen",
-            icon = Icons.Rounded.Home
-        )
-    )
-
-    NavigationBar(
-        containerColor = Color.Red,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height = 60.dp)
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            }
+        },
+        backgroundColor = Color.Transparent,
+        contentColor = Color.Black,
+        elevation = FloatingActionButtonDefaults.elevation(0.dp)
     ) {
-
-
-        bottomNavItem.forEach { item ->
-
-            NavigationBarItem(
-                selected = false,
-                onClick = {
-                    if (viewModel.screenUbication != item.route) {
-                        when (item.route) {
-                            "home_screen" -> navController.navigate(route = AppScreens.HomeScreen.route)
-                            "map_screen" -> navController.navigate(route = AppScreens.MapScreen.route)
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.name,
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
+        Box(
+            modifier = Modifier
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFF9B603), Color(0xFFE0070F)),
+                        startX = 900f,
+                        endX = 425f
                     )
-                }
+                )
+                .padding(8.dp)
+                .size(250.dp) // Tamaño aumentado del botón
+        ) {
+            Text(
+                modifier = Modifier.align(alignment = Alignment.Center),
+                text = "¿Cómo llegar a ${mUbicacionSeleccionada.nombre}?",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -192,7 +182,10 @@ fun Bottombar(navController: NavController, viewModel: MainViewModel) {
 
 
 @Composable
-private fun selectorDeUbicacionesRegistradas(listaMarcadores: List<Marcador>, viewModel: MainViewModel): Marcador {
+private fun selectorDeUbicacionesRegistradas(
+    listaMarcadores: List<Marcador>,
+    viewModel: MainViewModel
+): Marcador {
 
     var mExpanded by remember { mutableStateOf(false) }
 

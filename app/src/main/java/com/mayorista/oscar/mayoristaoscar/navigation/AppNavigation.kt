@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mayorista.oscar.mayoristaoscar.ui.screens.HomeScreen
+import com.mayorista.oscar.mayoristaoscar.ui.screens.OfertasScreen
 import com.mayorista.oscar.mayoristaoscar.ui.screens.PantallaMapa
 import com.mayorista.oscar.mayoristaoscar.ui.screens.SplashScreen
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
@@ -27,6 +28,10 @@ fun AppNavigation() {
         composable(route = AppScreens.MapScreen.route){
             viewModel.screenUbication = "map_screen"
             PantallaMapa(navController,viewModel)
+        }
+        composable(route = AppScreens.OfertasScreen.route){
+            viewModel.screenUbication="ofertas_screen"
+            OfertasScreen(navController)
         }
 
 
