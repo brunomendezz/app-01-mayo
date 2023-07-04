@@ -9,11 +9,11 @@ import javax.inject.Inject
 
 class PdfCloudStorageRepository @Inject constructor(var firebase : Firebase): PdfRepository {
 
-    override suspend fun getPdf(): PdfModelMayo {
+    override suspend fun getPdf(): PdfModelMayo? {
         val gsReference =
             firebase.storage.getReferenceFromUrl("gs://mayorista-oscar-4a2db.appspot.com/listas/lista.PDF")
 
-        val deferred = CompletableDeferred<PdfModelMayo>()
+        val deferred = CompletableDeferred<PdfModelMayo?>()
 
         gsReference.getBytes(Long.MAX_VALUE)
             .addOnSuccessListener { bytes ->
@@ -22,8 +22,7 @@ class PdfCloudStorageRepository @Inject constructor(var firebase : Firebase): Pd
             }
             .addOnFailureListener { exception ->
                 Log.i("bruno", "getPdf: la llamada falló", exception)
-                deferred.complete(PdfModelMayo(0,ByteArray(3)))
-            }
+                deferred.complete(null) }
 
         return deferred.await()
     }

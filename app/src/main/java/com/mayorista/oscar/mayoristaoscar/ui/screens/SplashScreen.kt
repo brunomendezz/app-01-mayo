@@ -37,7 +37,7 @@ import kotlinx.coroutines.delay
        horizontalAlignment = Alignment.CenterHorizontally,
        verticalArrangement = Arrangement.Center)   {
 
-           Image(painter = painterResource(id = R.mipmap.ic_mayooscar1_foreground,
+           Image(painter = painterResource(id = R.mipmap.ic_mayooscar_foreground,
            ), modifier = Modifier.width(172.dp).height(172.dp), contentDescription ="Mayorista Oscar Logo" )
            Text(text = "Mayorista Oscar")
 

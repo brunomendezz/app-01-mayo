@@ -10,9 +10,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_mayooscar1_foreground"
+        android:icon="@mipmap/ic_mayooscar_foreground"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_mayooscar1"
+        android:roundIcon="@mipmap/ic_mayooscar_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MayoristaOscar"
         tools:targetApi="31">
@@ -32,6 +32,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
+     See README(https://goo.gl/l4GJaQ) for more. -->
 
         <service
             android:name=".data.firebase.MyFirebaseMessagingService"

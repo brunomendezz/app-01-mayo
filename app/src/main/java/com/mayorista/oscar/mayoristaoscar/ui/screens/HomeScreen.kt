@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -33,8 +35,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,15 +44,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -61,11 +58,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
-import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
@@ -74,12 +69,12 @@ import java.io.FileOutputStream
 
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
-    val bytes by viewModel.pdfDocument.observeAsState()
+    val bytesPDF by viewModel.pdfDocument.observeAsState()
     val productosEnOferta by viewModel.productosEnOferta.observeAsState()
     val context = LocalContext.current
 
     Scaffold(
-        topBar = { Toolbar(navController) }
+        topBar = { Toolbar() }
     ) {
         Column(
             modifier = Modifier
@@ -88,23 +83,22 @@ fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
         ) {
 
 
-            bytes?.let { it1 ->
-                ContentHomeScreen(
-                    bytes = it1,
-                    onClick = { openPdf(bytes!!, context) },
-                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
-                    onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) })
-            }
-
+            ContentHomeScreen(
+                bytes = bytesPDF,
+                onClick = { openPdf(bytesPDF!!, context) },
+                onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
+                onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) })
         }
 
-
     }
+
+
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Toolbar(navController: NavController) {
+fun Toolbar() {
     TopAppBar(
         title = {
             Row(
@@ -121,40 +115,15 @@ fun Toolbar(navController: NavController) {
                 )
             }
         },
-        colors = topAppBarColors(
-            MaterialTheme.colorScheme.primary
-        )/*TopAppBarDefaults.smallTopAppBarColors(containerColor = Blue)*/,
-        actions = {
-            TopAppBarActionButton(
-                imageVector = Icons.Default.LocationOn,
-                description = "Ubications Icon",
-                onClick = { navController.navigate(route = AppScreens.MapScreen.route) }
-            )
-        },
+        colors = topAppBarColors(Color(0xFFE0070F)),
         modifier = Modifier.shadow(0.dp)
     )
-}
-
-@Composable
-fun TopAppBarActionButton(
-    imageVector: ImageVector,
-    description: String,
-    onClick: () -> Unit
-) {
-    IconButton(onClick) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = description,
-            tint = Color.White,
-            modifier = Modifier.size(35.dp)
-        )
-    }
 }
 
 
 @Composable
 fun ContentHomeScreen(
-    bytes: ByteArray,
+    bytes: ByteArray?,
     onClick: () -> Unit,
     onClickSucursal: () -> Unit,
     onClickVerTodos: () -> Unit
@@ -166,7 +135,7 @@ fun ContentHomeScreen(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFFE0070F), Color(0xFFFFFFFF)),
                     startY = 0f,
-                    endY = 150f
+                    endY = 50f
                 )
             )
     ) {
@@ -199,6 +168,7 @@ fun ContentHomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxSize()
+                        .background(Color.White)
                 ) {
                     MarcaList()
                 }
@@ -235,9 +205,8 @@ fun ContentHomeScreen(
 }
 
 
-
 @Composable
-fun CardPdf(bytes: ByteArray, onClick: () -> Unit) {
+fun CardPdf(bytes: ByteArray?, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -267,7 +236,9 @@ fun CardPdf(bytes: ByteArray, onClick: () -> Unit) {
                     .fillMaxSize()
                     .background(Color.White)
             ) {
+
                 MostrarVistaPreviaPDF(pdfByteArray = bytes) { onClick() }
+
             }
 
             Row(modifier = Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
@@ -308,6 +279,7 @@ fun CardPdf(bytes: ByteArray, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuestrasSucursalesCard(onClick: () -> Unit) {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -328,27 +300,37 @@ fun NuestrasSucursalesCard(onClick: () -> Unit) {
                     )
                 ),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Sucursales",
-                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Conoce nuestras distintas sucursales",
-                    style = TextStyle(fontSize = 15.sp)
-                )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Sucursales",
+                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        )
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Ubicación"
+                        )
+
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Conoce nuestras distintas sucursales",
+                        style = TextStyle(fontSize = 15.sp)
+                    )
+                }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = "Ubicación",
-                modifier = Modifier.padding(end = 16.dp)
-            )
+
+
         }
     }
 }
@@ -367,7 +349,7 @@ fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
         val renderer = PdfRenderer(parcelFileDescriptor)
         val page = renderer.openPage(0)
 
-        val targetHeight = 1900.dp // Altura deseada para la vista previa
+        val targetHeight = 1900.dp // Altura para la vista previa
         val ratio = page.height.toFloat() / page.width.toFloat()
         val targetWidth = (targetHeight.value / ratio).toInt()
 
@@ -376,7 +358,7 @@ fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
             targetHeight.value.toInt(),
             Bitmap.Config.ARGB_8888
         )
-        val renderQuality = PdfRenderer.Page.RENDER_MODE_FOR_PRINT // Cambio de modo de renderizado
+        val renderQuality = PdfRenderer.Page.RENDER_MODE_FOR_PRINT //Calidad del render
         val renderRect = Rect(0, 0, targetWidth, targetHeight.value.toInt())
         page.render(bitmap, renderRect, null, renderQuality)
 
@@ -411,7 +393,28 @@ fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
         parcelFileDescriptor.close()
         file.delete()
     } else {
-        Text(text = "No hay una lista de precio disponible.")
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable { onClick() }
+                .height(200.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            colors = CardDefaults.cardColors(Color.White)
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+
+            ) {
+                Text(
+                    text = "No hay un PDF disponible por el momento, revise su conexion a internet e intente mas tarde",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(alignment = Alignment.Center)
+                )
+            }
+        }
     }
 }
 
@@ -419,10 +422,8 @@ fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
 fun MarcaList() {
     val images = listOf(
         "https://media.taringa.net/knn/fit:550/Z3M6Ly9rbjMvdGFyaW5nYS8yLzQvMi84LzkvNy85MC9tYW5hb3NhcmcvREQ2LmpwZw",
-        "https://i.ytimg.com/vi/q3DQcUu7HGg/maxresdefault.jpg",
+        "https://www.exportadoresdecordoba.com/images_db/fotos/650px/17659_foto.jpg",
         "https://distribuidoraelcriollo.com/wp-content/uploads/2021/08/La-serenisima-portada.jpg",
-        "https://scontent.faep4-2.fna.fbcdn.net/v/t39.30808-6/301604648_457380146428086_4454130853595389542_n.png?_nc_cat=109&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=uFMGWBRi7TEAX9Hixsv&_nc_ht=scontent.faep4-2.fna&oh=00_AfA1R0xuTnsj5ZPZvaKNnMMgBIMrrv71NjgdeUAfIA0mgQ&oe=64993652",
-        "https://scontent.faep4-2.fna.fbcdn.net/v/t39.30808-6/218133258_2893189577664095_1744972515755886442_n.png?_nc_cat=109&ccb=1-7&_nc_sid=e3f864&_nc_ohc=ABA0JmNScV0AX9b2uhL&_nc_ht=scontent.faep4-2.fna&oh=00_AfDs2R1Qb7WVbk6ZQVYKwqgpm4ZlPwqbms2H_nS3NJcbAA&oe=64991396",
         "https://i0.wp.com/www.sitemarca.com/wp-content/uploads/2017/05/Nada-como-llevar-Coca-Cola-a-tu-casa-1-e1494335411209.png?fit=600%2C293&ssl=1"
     )
     LazyRow(
@@ -432,7 +433,7 @@ fun MarcaList() {
         items(images) { imageUrl ->
             Card(
                 modifier = Modifier
-                    .width(250.dp) // Establece el ancho de la tarjeta al máximo disponible
+                    .width(250.dp)
                     .height(110.dp),
                 shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.elevatedCardElevation(8.dp),
@@ -480,29 +481,31 @@ fun CardProductosEnOferta(onClickVerTodos: () -> Unit) {
 
     Box(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .wrapContentSize()
     ) {
         Card(
             modifier = Modifier
-                .fillMaxSize()
-                .height(275.dp)
-                .padding(16.dp),
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(8.dp),
             shape = RoundedCornerShape(8.dp),
             elevation = CardDefaults.elevatedCardElevation(8.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Column(
-            ) {
+            Column {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Productos en oferta",
                         style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.weight(1f)
                     )
 
                     Text(
@@ -513,77 +516,67 @@ fun CardProductosEnOferta(onClickVerTodos: () -> Unit) {
                             fontWeight = FontWeight.Bold
                         ),
                         color = Color.Red,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .clickable { onClickVerTodos() },
                         textAlign = TextAlign.Center,
+                        modifier = Modifier.clickable { onClickVerTodos() }
                     )
                 }
-
-
                 Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
-            }
-        }
-
-
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = 50.dp)
-        ) {
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.Center),
-            ) {
-
-
-                items(listaDeProductosEnOferta) { producto ->
-                    ProductoCard(producto = producto)
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(listaDeProductosEnOferta) { producto ->
+                        ProductoCard(producto = producto)
+                    }
                 }
             }
+
         }
-
-
     }
 }
 
 
 @Composable
 fun ProductoCard(producto: ProductoModel) {
-
     Card(
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
+            .padding(12.dp)
+            .fillMaxWidth()
+            .height(110.dp),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-
-
-        Row() {
-
-            Image(
-                painter = rememberAsyncImagePainter(model = producto.imagen),
-                contentDescription = "Imagen del producto",
+        Row(
+            modifier = Modifier.wrapContentHeight(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            Box(
                 modifier = Modifier
-                    .width(150.dp)
-                    .height(75.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .align(alignment = Alignment.CenterVertically)
-
-            )
+                    .width(110.dp)
+                    .fillMaxHeight()
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = producto.imagen),
+                    contentDescription = "Imagen del producto",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                )
+            }
 
             Column(
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp)
+                    .fillMaxHeight()
             ) {
                 Text(
                     text = producto.nombre,
                     style = TextStyle(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Normal,
                         textAlign = TextAlign.Center
                     ),
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -593,7 +586,8 @@ fun ProductoCard(producto: ProductoModel) {
                     text = "$${producto.precio}",
                     style = TextStyle(
                         fontSize = 14.sp,
-                        textDecoration = TextDecoration.LineThrough
+                        textDecoration = TextDecoration.LineThrough,
+                        color = Color.Gray
                     ),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
@@ -616,10 +610,8 @@ fun ProductoCard(producto: ProductoModel) {
         }
     }
 }
-
-
 fun openPdf(bytes: ByteArray, context: Context) {
-    val file = File(context.cacheDir, "lista de precios.pdf")
+    val file = File(context.cacheDir, "Mayorista Oscar.pdf")
     file.writeBytes(bytes)
 
     val uri = FileProvider.getUriForFile(

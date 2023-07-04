@@ -44,7 +44,7 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _ubicacionesRapidas.value = marcadorRepository.getUbicacionesRapidas()
-            _pdfDocument.value = pdfServices.getPdf().bytes
+            _pdfDocument.value = pdfServices.getPdf()?.bytes
            // _productosEnOferta.value = productoServices.getProductosEnOferta()
         }
     }

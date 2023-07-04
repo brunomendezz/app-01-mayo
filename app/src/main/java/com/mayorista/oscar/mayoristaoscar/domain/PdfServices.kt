@@ -11,7 +11,7 @@ import kotlin.math.log
 
 class PdfServices @Inject constructor(var repoC: PdfCloudStorageRepository, var repoDba: PdfDbaRepository) {
 
-    suspend fun getPdf(): PdfModelMayo {
+    suspend fun getPdf(): PdfModelMayo? {
         Log.i("bruno", "getPdf: entre al get")
 
         val pdfFromDb = repoDba.getPdf()
@@ -20,8 +20,8 @@ class PdfServices @Inject constructor(var repoC: PdfCloudStorageRepository, var 
 
         return if (pdfFromDb == null) {
             Log.i("bruno", "getPdf: dba estaba vacia")
-            val pdfFromCloud = repoC.getPdf()
             Log.i("bruno", "getPdf: pedi el cloud")
+            val pdfFromCloud = repoC.getPdf()
             if (pdfFromCloud != null) {
                 repoDba.savePdf(pdfFromCloud)
                 Log.i("bruno", "getPdf: guarde en dba")

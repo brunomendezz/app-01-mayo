@@ -3,7 +3,6 @@ package com.mayorista.oscar.mayoristaoscar.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,12 +36,12 @@ import org.w3c.dom.Text
 
 
 @Composable
-fun OfertasScreen(navController: NavHostController) {
-    ViewContainer(navController)
+fun OfertasScreen() {
+    ViewContainer()
 }
 
 @Composable
-fun ViewContainer(navController: NavHostController) {
+fun ViewContainer() {
     val itemsPerRow = 2
 
     val listaDeProductosEnOferta = listOf(
@@ -95,7 +94,7 @@ fun ViewContainer(navController: NavHostController) {
     )
 
     Scaffold(
-        topBar = { Toolbar(navController) },
+        topBar = { Toolbar() },
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(itemsPerRow),
@@ -133,7 +132,7 @@ fun ViewContainer(navController: NavHostController) {
                                 text = producto.nombre,
                                 style = TextStyle(
                                     fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Normal,
                                     textAlign = TextAlign.Center
                                 ),
                                 modifier = Modifier.padding(vertical = 8.dp)
@@ -143,7 +142,8 @@ fun ViewContainer(navController: NavHostController) {
                                 text = "$${producto.precio}",
                                 style = TextStyle(
                                     fontSize = 14.sp,
-                                    textDecoration = TextDecoration.LineThrough
+                                    textDecoration = TextDecoration.LineThrough,
+                                    color = Color.Gray
                                 ),
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
