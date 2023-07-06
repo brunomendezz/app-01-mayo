@@ -12,7 +12,7 @@ class MarcadorRepository @Inject constructor(){
             Marcador("PONTEVEDRA", LatLng(-34.74277906543054, -58.693338946004005)),
         )
     }
-    fun getUbicacionesRapidas(): MutableList<Marcador> {
+    fun getSucursales(): MutableList<Marcador> {
         return ubicaciones.toMutableList()
     }
 

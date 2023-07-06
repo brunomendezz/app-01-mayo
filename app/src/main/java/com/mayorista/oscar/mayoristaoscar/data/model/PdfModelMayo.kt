@@ -9,6 +9,7 @@ data class PdfModelMayo(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")val id:Int= 0,
     @ColumnInfo(name = "pdfBytes") val bytes: ByteArray
+
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

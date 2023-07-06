@@ -1,7 +1,5 @@
 package com.mayorista.oscar.mayoristaoscar.ui.screens
 
-import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.pdf.PdfRenderer
@@ -20,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -40,16 +39,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -57,22 +54,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
-import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
-import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
-fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
-    val bytesPDF by viewModel.pdfDocument.observeAsState()
-    val productosEnOferta by viewModel.productosEnOferta.observeAsState()
-    val context = LocalContext.current
-
+fun HomeScreen(
+    imageBitmap: ImageBitmap?,
+    onClickPDF: () -> Unit,
+    onClickSucursal: () -> Unit,
+    onClickVerTodos: () -> Unit,
+    onClickFacebook: () -> Unit,
+    onClickInstagram: () -> Unit,
+    onClickWathsApp: () -> Unit
+) {
     Scaffold(
         topBar = { Toolbar() }
     ) {
@@ -81,18 +79,18 @@ fun HomeScreen(navController: NavHostController, viewModel: MainViewModel) {
                 .fillMaxSize()
                 .padding(it)
         ) {
-
-
             ContentHomeScreen(
-                bytes = bytesPDF,
-                onClick = { openPdf(bytesPDF!!, context) },
-                onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
-                onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) })
+                imageBitmap,
+                onClickPDF,
+                onClickSucursal,
+                onClickVerTodos,
+                onClickFacebook,
+                onClickInstagram,
+                onClickWathsApp
+            )
         }
 
     }
-
-
 }
 
 
@@ -123,10 +121,13 @@ fun Toolbar() {
 
 @Composable
 fun ContentHomeScreen(
-    bytes: ByteArray?,
+    imageBitmap: ImageBitmap?,
     onClick: () -> Unit,
     onClickSucursal: () -> Unit,
-    onClickVerTodos: () -> Unit
+    onClickVerTodos: () -> Unit,
+    onClickFacebook: () -> Unit,
+    onClickInstagram: () -> Unit,
+    onClickWathsApp: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -157,7 +158,7 @@ fun ContentHomeScreen(
                             )
                         )
                 ) {
-                    CardPdf(bytes = bytes) {
+                    CardPdf(imageBitmap = imageBitmap) {
                         onClick()
                     }
 
@@ -194,19 +195,25 @@ fun ContentHomeScreen(
                 }
 
             }
-
-
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize()
+                ) {
+                    Redes(
+                        onClickFacebook = onClickFacebook,
+                        onClickInstagram = onClickInstagram, onClickWhatsApp = onClickWathsApp
+                    )
+                }
+            }
         }
-
-
     }
-
-
 }
 
 
 @Composable
-fun CardPdf(bytes: ByteArray?, onClick: () -> Unit) {
+fun CardPdf(imageBitmap: ImageBitmap?, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,7 +244,7 @@ fun CardPdf(bytes: ByteArray?, onClick: () -> Unit) {
                     .background(Color.White)
             ) {
 
-                MostrarVistaPreviaPDF(pdfByteArray = bytes) { onClick() }
+                MostrarVistaPreviaPDF(imageBitmap = imageBitmap) { onClick() }
 
             }
 
@@ -267,12 +274,8 @@ fun CardPdf(bytes: ByteArray?, onClick: () -> Unit) {
                         .clickable { },
                     textAlign = TextAlign.Center,
                 )
-
             }
-
-
         }
-
     }
 }
 
@@ -329,94 +332,64 @@ fun NuestrasSucursalesCard(onClick: () -> Unit) {
                     )
                 }
             }
-
-
         }
     }
 }
 
 
 @Composable
-fun MostrarVistaPreviaPDF(pdfByteArray: ByteArray?, onClick: () -> Unit) {
-    if (pdfByteArray != null) {
-        val file = File.createTempFile("temp", ".pdf")
-        val outputStream = FileOutputStream(file)
-        outputStream.write(pdfByteArray)
-        outputStream.close()
+fun MostrarVistaPreviaPDF(imageBitmap: ImageBitmap?, onClick: () -> Unit) {
 
-        val parcelFileDescriptor =
-            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-        val renderer = PdfRenderer(parcelFileDescriptor)
-        val page = renderer.openPage(0)
 
-        val targetHeight = 1900.dp // Altura para la vista previa
-        val ratio = page.height.toFloat() / page.width.toFloat()
-        val targetWidth = (targetHeight.value / ratio).toInt()
-
-        val bitmap = Bitmap.createBitmap(
-            targetWidth,
-            targetHeight.value.toInt(),
-            Bitmap.Config.ARGB_8888
-        )
-        val renderQuality = PdfRenderer.Page.RENDER_MODE_FOR_PRINT //Calidad del render
-        val renderRect = Rect(0, 0, targetWidth, targetHeight.value.toInt())
-        page.render(bitmap, renderRect, null, renderQuality)
-
-        val imageBitmap = bitmap.asImageBitmap()
-
-        Card(
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable { onClick() }
-                .height(200.dp),
-            elevation = CardDefaults.elevatedCardElevation(4.dp),
-            colors = CardDefaults.cardColors(Color.White)
-        ) {
-            Column(
+        if (imageBitmap != null) {
+            Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(targetHeight),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(16.dp)
+                    .clickable { onClick() }
+                    .height(200.dp),
+                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                colors = CardDefaults.cardColors(Color.White)
             ) {
-                Image(
-                    bitmap = imageBitmap,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop, // Escala para ajustar el ancho de la imagen
-                    alignment = Alignment.TopCenter
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(imageBitmap.height.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop, // Escala para ajustar el ancho de la imagen
+                        alignment = Alignment.TopCenter
+                    )
+                }
             }
         }
-
-        page.close()
-        renderer.close()
-        parcelFileDescriptor.close()
-        file.delete()
-    } else {
-        Card(
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable { onClick() }
-                .height(200.dp),
-            elevation = CardDefaults.elevatedCardElevation(4.dp),
-            colors = CardDefaults.cardColors(Color.White)
-        ) {
-            Box(
+            else{
+            Card(
                 modifier = Modifier
-                    .align(alignment = Alignment.CenterHorizontally)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-
+                    .padding(16.dp)
+                    .height(200.dp),
+                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                colors = CardDefaults.cardColors(Color.White)
             ) {
-                Text(
-                    text = "No hay un PDF disponible por el momento, revise su conexion a internet e intente mas tarde",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(alignment = Alignment.Center)
-                )
+                Box(
+                    modifier = Modifier
+                        .align(alignment = Alignment.CenterHorizontally)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+
+                ) {
+                    Text(
+                        text = "No hay un PDF disponible por el momento, revise su conexion a internet e intente mas tarde",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(alignment = Alignment.Center)
+                    )
+                }
             }
         }
     }
-}
 
 @Composable
 fun MarcaList() {
@@ -610,22 +583,49 @@ fun ProductoCard(producto: ProductoModel) {
         }
     }
 }
-fun openPdf(bytes: ByteArray, context: Context) {
-    val file = File(context.cacheDir, "Mayorista Oscar.pdf")
-    file.writeBytes(bytes)
 
-    val uri = FileProvider.getUriForFile(
-        context,
-        context.packageName + ".fileprovider",
-        file
-    )
 
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "application/pdf")
-        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_CLEAR_TOP
+@Composable
+fun Redes(
+    onClickFacebook: () -> Unit,
+    onClickInstagram: () -> Unit,
+    onClickWhatsApp: () -> Unit
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        SocialIcon(
+            painterResId = R.drawable.facebook_logo_blue,
+            contentDescription = "Facebook",
+            onClick = onClickFacebook
+        )
+        SocialIcon(
+            painterResId = R.drawable.instagram_logo,
+            contentDescription = "Instagram",
+            onClick = onClickInstagram
+        )
+        SocialIcon(
+            painterResId = R.drawable.wathsapp_logo,
+            contentDescription = "WhatsApp",
+            onClick = onClickWhatsApp
+        )
     }
-
-    context.startActivity(intent)
 }
 
+@Composable
+fun SocialIcon(
+    painterResId: Int,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    val painter = rememberAsyncImagePainter(painterResId)
+
+    Image(
+        painter = painter,
+        contentDescription = contentDescription,
+        modifier = Modifier
+            .size(34.dp)
+            .padding(8.dp)
+            .clickable { onClick() },
+        contentScale = ContentScale.Fit
+    )
+}
 
