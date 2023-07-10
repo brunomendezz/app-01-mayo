@@ -4,19 +4,30 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.material.snackbar.Snackbar
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
 import com.mayorista.oscar.mayoristaoscar.ui.screens.HomeScreen
 import com.mayorista.oscar.mayoristaoscar.ui.screens.OfertasScreen
@@ -26,6 +37,8 @@ import com.mayorista.oscar.mayoristaoscar.ui.theme.MayoristaOscarTheme
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
+import android.provider.Settings
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,7 +50,8 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(color =MaterialTheme.colorScheme.background
                 ) {
-                   AppNavigation()
+                    AppNavigation()
+                    AskNotificationPermission()
                 }
             }
         }
@@ -145,4 +159,114 @@ class MainActivity : ComponentActivity() {
 
         context.startActivity(intent)
     }
+
+
+
+
+    // Declare the launcher at the top of your Activity/Fragment:
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            val snackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Notificaciones activadas,las puedes desactivar desde ajustes.",
+                Snackbar.LENGTH_LONG
+            )
+            snackbar.setAction("Desactivar") {
+                openAppSettings(this)
+            }
+            snackbar.show()
+        } else {
+            val snackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Notificaciones desactivadas,las puedes activar desde ajustes.",
+                Snackbar.LENGTH_LONG
+            )
+            snackbar.setAction("Activar") {
+                openAppSettings(this)
+            }
+            snackbar.show()
+        }
+    }
+
+        private fun openAppSettings(context: Context) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", context.packageName, null)
+            intent.data = uri
+            context.startActivity(intent)
+        }
+
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    @Composable
+    private fun AskNotificationPermission() {
+        val permissionGranted by remember { mutableStateOf(
+            ContextCompat.checkSelfPermission(
+               this@MainActivity,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) }
+        var showDialog by remember { mutableStateOf(!permissionGranted) }
+
+        if (!permissionGranted) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
+                    NotificationPermissionExplanationDialog(
+                        visible = showDialog,
+                        onAccept = {
+                            requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                            showDialog = false
+                        },
+                        onDecline = {
+                            showDialog = false
+                            // Allow the user to continue without notifications
+                        }
+                    )
+                } else {
+                    requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
+    }
+
+
+    @Composable
+    fun NotificationPermissionExplanationDialog(
+        visible: Boolean,
+        onAccept: () -> Unit,
+        onDecline: () -> Unit
+    ) {
+        if (visible) {
+            AlertDialog(
+                onDismissRequest = onDecline,
+                title = {
+                    Text(text = "Permiso de notificaciones")
+                },
+                text = {
+                    Text(
+                        text = "Al habilitar el permiso de notificaciones, podrás recibir notificaciones importantes en tiempo real."
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            onAccept()
+                        },
+                    ) {
+                        Text(text = "Aceptar")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = onDecline
+                    ) {
+                        Text(text = "No, gracias")
+                    }
+                }
+            )
+        }
+    }
+
+
 }
