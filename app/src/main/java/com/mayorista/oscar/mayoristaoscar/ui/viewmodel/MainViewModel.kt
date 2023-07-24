@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,6 +21,7 @@ import com.mayorista.oscar.mayoristaoscar.data.repos.MarcadorRepository
 import com.mayorista.oscar.mayoristaoscar.domain.PdfServices
 import com.mayorista.oscar.mayoristaoscar.domain.ProductoServices
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -33,6 +35,7 @@ class MainViewModel @Inject constructor(
     private val productoServices: ProductoServices
 
     ):ViewModel() {
+
 
 
     private val _pdfDocument =MutableLiveData<ByteArray?>()
@@ -52,6 +55,8 @@ class MainViewModel @Inject constructor(
     private val _ubicacionMapa = MutableLiveData<Marcador>()
     val ubicacionMapa: LiveData<Marcador> = _ubicacionMapa
 
+    private val _showDialogPrecio = MutableLiveData<Boolean>()
+    val showDialogPrecio: LiveData<Boolean> = _showDialogPrecio
 
     init {
         viewModelScope.launch {
@@ -103,6 +108,13 @@ class MainViewModel @Inject constructor(
         }
 
         return null
+    }
+
+    fun showDialog() {
+        _showDialogPrecio.value = true
+    }
+    fun ondismisDialog(){
+        _showDialogPrecio.value=false
     }
 
 }

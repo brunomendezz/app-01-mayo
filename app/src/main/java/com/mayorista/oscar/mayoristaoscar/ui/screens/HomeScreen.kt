@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,8 +27,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,8 +54,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -69,7 +78,8 @@ fun HomeScreen(
     onClickVerTodos: () -> Unit,
     onClickFacebook: () -> Unit,
     onClickInstagram: () -> Unit,
-    onClickWathsApp: () -> Unit
+    onClickWathsApp: () -> Unit,
+    onClickScannear: () -> Unit
 ) {
     Scaffold(
         topBar = { Toolbar() }
@@ -86,7 +96,8 @@ fun HomeScreen(
                 onClickVerTodos,
                 onClickFacebook,
                 onClickInstagram,
-                onClickWathsApp
+                onClickWathsApp,
+                onClickScannear
             )
         }
 
@@ -127,7 +138,8 @@ fun ContentHomeScreen(
     onClickVerTodos: () -> Unit,
     onClickFacebook: () -> Unit,
     onClickInstagram: () -> Unit,
-    onClickWathsApp: () -> Unit
+    onClickWathsApp: () -> Unit,
+    onClickScannear: () ->Unit
 ) {
     Box(
         modifier = Modifier
@@ -195,6 +207,18 @@ fun ContentHomeScreen(
                 }
 
             }
+
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize()
+                ) {
+                    ScannearProducto(onClickScannear)
+                }
+            }
+
+
             item {
                 Box(
                     modifier = Modifier
@@ -209,6 +233,60 @@ fun ContentHomeScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScannearProducto(onClickScannear: () -> Unit) {
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.elevatedCardElevation(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        onClick = { onClickScannear() }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFF9B603), Color(0xFFE0070F)),
+                        startX = 200f,
+                        endX = 900f
+                    )
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Precio",
+                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        )
+                        androidx.compose.material.Icon(modifier = Modifier.size(25.dp), painter = painterResource(id = R.drawable.lupascanner_logo), contentDescription ="LectorQR" )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Escanea el código de barra de cualquier producto y obtené el precio!",
+                        style = TextStyle(fontSize = 15.sp)
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -327,7 +405,7 @@ fun NuestrasSucursalesCard(onClick: () -> Unit) {
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Conoce nuestras distintas sucursales",
+                        text = "Conocé nuestras distintas sucursales",
                         style = TextStyle(fontSize = 15.sp)
                     )
                 }
@@ -627,5 +705,58 @@ fun SocialIcon(
             .clickable { onClick() },
         contentScale = ContentScale.Fit
     )
+}
+
+
+@Composable
+fun BarcodeInfoDialog(
+    visible: Boolean,
+    scannedValue: String,
+    onClose: () -> Unit
+) {
+    AnimatedVisibility(visible = visible) {
+        AlertDialog(
+            onDismissRequest = onClose,
+            title = {
+                Text(
+                    text = "Nombre  del producto escaneado",
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            },
+            text = {
+                Column(modifier = Modifier.wrapContentSize(), verticalArrangement = Arrangement.SpaceBetween,Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Código de barras escaneado: $scannedValue",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            textDecoration = TextDecoration.None,
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    Text(textAlign = TextAlign.Center,
+                        text = "$ ??????",
+                        style = TextStyle(
+                            fontSize = 35.sp,
+                            textDecoration = TextDecoration.None,
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+
+            },
+            confirmButton = {
+                Button(colors = androidx.compose.material.ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+                    onClick = onClose
+                ) {
+                    Text(color = Color.White,text = "Cerrar")
+                }
+            }
+        )
+    }
 }
 

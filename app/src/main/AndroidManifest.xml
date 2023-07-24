@@ -33,6 +33,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="sensorLandscape"
+            tools:replace="screenOrientation"/>
+
         <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
      See README(https://goo.gl/l4GJaQ) for more. -->
 

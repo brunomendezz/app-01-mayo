@@ -6,7 +6,7 @@ import com.mayorista.oscar.mayoristaoscar.data.repos.ProductosCloudFirestoreDbaR
 import javax.inject.Inject
 
 class ProductoServices @Inject constructor(var productoRepo : ProductosCloudFirestoreDbaRepository)  {
-    suspend fun getProductosEnOferta(): ProductosEnOferta? {
+    suspend fun getProductosEnOferta(): List<ProductoModel>? {
         return productoRepo.getProductosEnOferta()
     }
 }

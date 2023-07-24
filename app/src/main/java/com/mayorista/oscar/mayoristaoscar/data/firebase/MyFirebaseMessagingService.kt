@@ -43,7 +43,7 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val channelId = CHANNEL_ID
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-
+            .setSmallIcon(R.drawable.mayooscar_logo1)
             .setContentTitle(remoteMessage.notification?.title)
             .setContentText(remoteMessage.notification?.body)
             .setAutoCancel(true)

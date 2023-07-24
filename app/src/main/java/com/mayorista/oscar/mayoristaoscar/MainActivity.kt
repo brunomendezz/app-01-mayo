@@ -38,11 +38,16 @@ import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import android.provider.Settings
+import android.widget.Toast
+import com.google.zxing.integration.android.IntentIntegrator
+import com.mayorista.oscar.mayoristaoscar.ui.screens.BarcodeInfoDialog
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private var resultScan:String=""
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -52,6 +57,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppNavigation()
                     AskNotificationPermission()
+                    val showDialog by viewModel.showDialogPrecio.observeAsState()
+                    showDialog?.let {
+                        BarcodeInfoDialog(visible = it, scannedValue =resultScan ) {
+                            viewModel.ondismisDialog()
+                        }
+                    }
+
                 }
             }
         }
@@ -81,8 +93,11 @@ class MainActivity : ComponentActivity() {
                     onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
                     onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) },
                     onClickFacebook = { abrirFacebook(context) },
-                    onClickInstagram = { abrirInstagram(context, packageManager) }
-                ) { abrirWhatsApp(context, packageManager) }
+                    onClickInstagram = { abrirInstagram(context, packageManager) },
+                    onClickWathsApp = { abrirWhatsApp(context, packageManager)},
+                    onClickScannear = {initScanner()}
+
+                    )
             }
 
             composable(AppScreens.MapScreen.route) {
@@ -267,6 +282,26 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
+
+    private fun initScanner() {
+        val integrator = IntentIntegrator(this)
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.EAN_13)
+        integrator.setPrompt("Coloque el codigo de barras en el interior del rectangulo del visor para escanear")
+        integrator.initiateScan()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        if (result != null && result.contents != null) {
+            resultScan=result.contents
+         viewModel.showDialog()
+            Toast.makeText(this, "Código de barras: $resultScan", Toast.LENGTH_LONG).show()
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
 
 
 }
