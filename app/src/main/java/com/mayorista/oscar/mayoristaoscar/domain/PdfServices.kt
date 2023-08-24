@@ -13,15 +13,15 @@ class PdfServices @Inject constructor(var repoC: PdfCloudStorageRepository, var 
 
     suspend fun getPdf(): PdfModelMayo? {
         Log.i("bruno", "getPdf: entre al get")
-
         val pdfFromDb = repoDba.getPdf()
         Log.i("bruno", "getPdf: pedi en dba")
 
 
         return if (pdfFromDb == null) {
             Log.i("bruno", "getPdf: dba estaba vacia")
-            Log.i("bruno", "getPdf: pedi el cloud")
+
             val pdfFromCloud = repoC.getPdf()
+            Log.i("bruno", "getPdf: pedi el cloud")
             if (pdfFromCloud != null) {
                 repoDba.savePdf(pdfFromCloud)
                 Log.i("bruno", "getPdf: guarde en dba")

@@ -16,6 +16,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mayorista.oscar.mayoristaoscar.data.model.Marcador
+import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductosEnOferta
 import com.mayorista.oscar.mayoristaoscar.data.repos.MarcadorRepository
 import com.mayorista.oscar.mayoristaoscar.domain.PdfServices
@@ -44,8 +45,8 @@ class MainViewModel @Inject constructor(
     private val _vistaPreviaPDF =MutableLiveData<ImageBitmap?>()
     val vistaPreviaPDF : LiveData<ImageBitmap?> = _vistaPreviaPDF
 
-    private val _productosEnOferta =MutableLiveData<ProductosEnOferta?>()
-    val productosEnOferta : LiveData<ProductosEnOferta?> = _productosEnOferta
+    private val _productosEnOferta =MutableLiveData<List<ProductoModel>?>()
+    val productosEnOferta : LiveData<List<ProductoModel>?> = _productosEnOferta
 
     private val _sucursales = MutableLiveData(emptyList<Marcador>())
 
@@ -63,7 +64,7 @@ class MainViewModel @Inject constructor(
             _sucursales.value = marcadorRepository.getSucursales()
             _pdfDocument.value = pdfServices.getPdf()?.bytes
             _vistaPreviaPDF.value = obtenerVistaPreviaPDF()
-           // _productosEnOferta.value = productoServices.getProductosEnOferta()
+           _productosEnOferta.value = productoServices.getProductosEnOferta()
         }
     }
 
@@ -115,6 +116,13 @@ class MainViewModel @Inject constructor(
     }
     fun ondismisDialog(){
         _showDialogPrecio.value=false
+    }
+
+     fun iniciarSesion(){
+         viewModelScope.launch {
+             productoServices.iniciarSesion()
+         }
+
     }
 
 }

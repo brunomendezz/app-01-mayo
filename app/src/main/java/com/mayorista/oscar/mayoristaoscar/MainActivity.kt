@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MayoristaOscarTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(color =MaterialTheme.colorScheme.background
                 ) {
                     AppNavigation()
@@ -90,12 +89,14 @@ class MainActivity : ComponentActivity() {
                 HomeScreen(
                     imageBitmap = vistaPreviaPDF,
                     onClickPDF = { openPdf(bytesPDF!!, context) },
-                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
+                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route)},
                     onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) },
                     onClickFacebook = { abrirFacebook(context) },
                     onClickInstagram = { abrirInstagram(context, packageManager) },
                     onClickWathsApp = { abrirWhatsApp(context, packageManager)},
-                    onClickScannear = {initScanner()}
+                    onClickScannear = {initScanner()},
+                    onClickActualizarLista = {actualizarLista()},
+                    productosEnOferta = productosEnOferta
 
                     )
             }
@@ -108,9 +109,17 @@ class MainActivity : ComponentActivity() {
 
             composable(AppScreens.OfertasScreen.route) {
                 viewModel.screenUbication = "ofertas_screen"
-                OfertasScreen()
+                productosEnOferta?.let { it1 -> OfertasScreen(it1) }
             }
         }
+    }
+
+    private fun actualizarLista() {
+        Snackbar.make(
+            findViewById(android.R.id.content),
+            "Funcionalidad no disponible por el momento.",
+            Snackbar.LENGTH_LONG
+        ).show()
     }
 
     private fun abrirFacebook(context: Context) {
@@ -235,7 +244,6 @@ class MainActivity : ComponentActivity() {
                         },
                         onDecline = {
                             showDialog = false
-                            // Allow the user to continue without notifications
                         }
                     )
                 } else {

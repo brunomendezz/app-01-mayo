@@ -1,9 +1,5 @@
 package com.mayorista.oscar.mayoristaoscar.ui.screens
 
-import android.graphics.Bitmap
-import android.graphics.Rect
-import android.graphics.pdf.PdfRenderer
-import android.os.ParcelFileDescriptor
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,12 +25,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonColors
-import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,12 +44,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -67,8 +57,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
-import java.io.File
-import java.io.FileOutputStream
+import com.mayorista.oscar.mayoristaoscar.data.model.ProductosEnOferta
 
 @Composable
 fun HomeScreen(
@@ -79,7 +68,9 @@ fun HomeScreen(
     onClickFacebook: () -> Unit,
     onClickInstagram: () -> Unit,
     onClickWathsApp: () -> Unit,
-    onClickScannear: () -> Unit
+    onClickScannear: () -> Unit,
+    onClickActualizarLista: () -> Unit,
+    productosEnOferta: List<ProductoModel>?
 ) {
     Scaffold(
         topBar = { Toolbar() }
@@ -89,16 +80,20 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            ContentHomeScreen(
-                imageBitmap,
-                onClickPDF,
-                onClickSucursal,
-                onClickVerTodos,
-                onClickFacebook,
-                onClickInstagram,
-                onClickWathsApp,
-                onClickScannear
-            )
+            if (productosEnOferta != null) {
+                ContentHomeScreen(
+                    imageBitmap,
+                    onClickPDF,
+                    onClickSucursal,
+                    onClickVerTodos,
+                    onClickFacebook,
+                    onClickInstagram,
+                    onClickWathsApp,
+                    onClickScannear,
+                    onClickActualizarLista,
+                    productosEnOferta
+                )
+            }
         }
 
     }
@@ -139,7 +134,9 @@ fun ContentHomeScreen(
     onClickFacebook: () -> Unit,
     onClickInstagram: () -> Unit,
     onClickWathsApp: () -> Unit,
-    onClickScannear: () ->Unit
+    onClickScannear: () -> Unit,
+    onClickActualizarLista: () -> Unit,
+    productosEnOferta: List<ProductoModel>
 ) {
     Box(
         modifier = Modifier
@@ -170,11 +167,13 @@ fun ContentHomeScreen(
                             )
                         )
                 ) {
-                    CardPdf(imageBitmap = imageBitmap) {
-                        onClick()
-                    }
-
+                    CardPdf(
+                        imageBitmap = imageBitmap,
+                        onClick = onClick,
+                        onClickActualizarLista = onClickActualizarLista
+                    )
                 }
+
             }
             item {
                 Box(
@@ -203,7 +202,7 @@ fun ContentHomeScreen(
                         .fillMaxWidth()
                         .fillMaxSize()
                 ) {
-                    CardProductosEnOferta(onClickVerTodos)
+                    CardProductosEnOferta(productosEnOferta,onClickVerTodos)
                 }
 
             }
@@ -274,7 +273,11 @@ fun ScannearProducto(onClickScannear: () -> Unit) {
                             text = "Precio",
                             style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         )
-                        androidx.compose.material.Icon(modifier = Modifier.size(25.dp), painter = painterResource(id = R.drawable.lupascanner_logo), contentDescription ="LectorQR" )
+                        androidx.compose.material.Icon(
+                            modifier = Modifier.size(25.dp),
+                            painter = painterResource(id = R.drawable.lupascanner_logo),
+                            contentDescription = "LectorQR"
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -291,7 +294,11 @@ fun ScannearProducto(onClickScannear: () -> Unit) {
 
 
 @Composable
-fun CardPdf(imageBitmap: ImageBitmap?, onClick: () -> Unit) {
+fun CardPdf(
+    imageBitmap: ImageBitmap?,
+    onClick: () -> Unit,
+    onClickActualizarLista: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -349,7 +356,7 @@ fun CardPdf(imageBitmap: ImageBitmap?, onClick: () -> Unit) {
                     color = Color.Red,
                     modifier = Modifier
                         .padding(16.dp)
-                        .clickable { },
+                        .clickable {onClickActualizarLista() },
                     textAlign = TextAlign.Center,
                 )
             }
@@ -419,55 +426,54 @@ fun NuestrasSucursalesCard(onClick: () -> Unit) {
 fun MostrarVistaPreviaPDF(imageBitmap: ImageBitmap?, onClick: () -> Unit) {
 
 
-        if (imageBitmap != null) {
-            Card(
+    if (imageBitmap != null) {
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable { onClick() }
+                .height(200.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            colors = CardDefaults.cardColors(Color.White)
+        ) {
+            Column(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { onClick() }
-                    .height(200.dp),
-                elevation = CardDefaults.elevatedCardElevation(4.dp),
-                colors = CardDefaults.cardColors(Color.White)
+                    .fillMaxWidth()
+                    .height(imageBitmap.height.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(imageBitmap.height.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        bitmap = imageBitmap,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop, // Escala para ajustar el ancho de la imagen
-                        alignment = Alignment.TopCenter
-                    )
-                }
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop, // Escala para ajustar el ancho de la imagen
+                    alignment = Alignment.TopCenter
+                )
             }
         }
-            else{
-            Card(
+    } else {
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .height(200.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            colors = CardDefaults.cardColors(Color.White)
+        ) {
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .height(200.dp),
-                elevation = CardDefaults.elevatedCardElevation(4.dp),
-                colors = CardDefaults.cardColors(Color.White)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .align(alignment = Alignment.CenterHorizontally)
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
 
-                ) {
-                    Text(
-                        text = "No hay un PDF disponible por el momento, revise su conexion a internet e intente mas tarde",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(alignment = Alignment.Center)
-                    )
-                }
+            ) {
+                Text(
+                    text = "No hay un PDF disponible por el momento, revise su conexion a internet e intente mas tarde",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(alignment = Alignment.Center)
+                )
             }
         }
     }
+}
 
 @Composable
 fun MarcaList() {
@@ -510,26 +516,7 @@ fun MarcaList() {
 }
 
 @Composable
-fun CardProductosEnOferta(onClickVerTodos: () -> Unit) {
-    val listaDeProductosEnOferta = listOf(
-        ProductoModel(
-            "Pan voglia", descuento = 10, fechaExpiracion = "26/06/2023", precio = 350.0,
-            imagen = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS86yckuT7u-t2WGFhdcuWR2PDRAJG1319Ttw&usqp=CAU"
-        ),
-        ProductoModel(
-            "Pan voglia", descuento = 10, fechaExpiracion = "26/06/2023", precio = 350.0,
-            imagen = "https://voglia.com.ar/wp-content/uploads/elementor/thumbs/pan1-pqsrnxlyoj8nct8ior5dnxt1cn85nleo8ik73j0yyo.png"
-        ),
-        ProductoModel(
-            "Pan voglia", descuento = 10, fechaExpiracion = "26/06/2023", precio = 350.0,
-            imagen = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS86yckuT7u-t2WGFhdcuWR2PDRAJG1319Ttw&usqp=CAU"
-        ),
-        ProductoModel(
-            "Pan voglia", descuento = 10, fechaExpiracion = "26/06/2023", precio = 350.0,
-            imagen = "https://voglia.com.ar/wp-content/uploads/elementor/thumbs/pan1-pqsrnxlyoj8nct8ior5dnxt1cn85nleo8ik73j0yyo.png"
-        )
-    )
-
+fun CardProductosEnOferta(productosEnOferta: List<ProductoModel>, onClickVerTodos: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -577,7 +564,7 @@ fun CardProductosEnOferta(onClickVerTodos: () -> Unit) {
                         .fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
-                    items(listaDeProductosEnOferta) { producto ->
+                    items(productosEnOferta) { producto ->
                         ProductoCard(producto = producto)
                     }
                 }
@@ -609,7 +596,7 @@ fun ProductoCard(producto: ProductoModel) {
                     .fillMaxHeight()
             ) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = producto.imagen),
+                    painter = rememberAsyncImagePainter(model = producto.image),
                     contentDescription = "Imagen del producto",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -624,7 +611,7 @@ fun ProductoCard(producto: ProductoModel) {
                     .fillMaxHeight()
             ) {
                 Text(
-                    text = producto.nombre,
+                    text = producto.title,
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
@@ -634,7 +621,7 @@ fun ProductoCard(producto: ProductoModel) {
                 )
 
                 Text(
-                    text = "$${producto.precio}",
+                    text = "$${producto.price}",
                     style = TextStyle(
                         fontSize = 14.sp,
                         textDecoration = TextDecoration.LineThrough,
@@ -644,7 +631,7 @@ fun ProductoCard(producto: ProductoModel) {
                 )
 
                 Text(
-                    text = "$${producto.precio - (producto.precio * producto.descuento / 100)}",
+                    text = "$${producto.price - (producto.price * 10 / 100)}",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -653,7 +640,7 @@ fun ProductoCard(producto: ProductoModel) {
                 )
 
                 Text(
-                    text = "Hasta: ${producto.fechaExpiracion}",
+                    text = "Hasta: 29/08/2023",
                     style = TextStyle(fontSize = 14.sp),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
@@ -729,7 +716,11 @@ fun BarcodeInfoDialog(
                 )
             },
             text = {
-                Column(modifier = Modifier.wrapContentSize(), verticalArrangement = Arrangement.SpaceBetween,Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.wrapContentSize(),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    Alignment.CenterHorizontally
+                ) {
                     Text(
                         text = "Código de barras escaneado: $scannedValue",
                         style = TextStyle(
@@ -738,7 +729,8 @@ fun BarcodeInfoDialog(
                         ),
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Text(textAlign = TextAlign.Center,
+                    Text(
+                        textAlign = TextAlign.Center,
                         text = "$ ??????",
                         style = TextStyle(
                             fontSize = 35.sp,
@@ -750,10 +742,11 @@ fun BarcodeInfoDialog(
 
             },
             confirmButton = {
-                Button(colors = androidx.compose.material.ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+                Button(
+                    colors = androidx.compose.material.ButtonDefaults.buttonColors(backgroundColor = Color.Red),
                     onClick = onClose
                 ) {
-                    Text(color = Color.White,text = "Cerrar")
+                    Text(color = Color.White, text = "Cerrar")
                 }
             }
         )
