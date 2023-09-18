@@ -26,21 +26,23 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 
 
 @Composable
-fun OfertasScreen(listaDeProductosEnOferta: List<ProductoModel>) {
-    ViewContainer(listaDeProductosEnOferta)
+fun OfertasScreen(listaDeProductosEnOferta: List<ProductoModel>,onClickCerrarSesion: () -> Unit) {
+    ViewContainer(listaDeProductosEnOferta, onClickCerrarSesion )
 }
 
 @Composable
-fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>) {
+fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>,
+onClickCerrarSesion:()->Unit) {
     val itemsPerRow = 2
 
 
     Scaffold(
-        topBar = { Toolbar() },
+        topBar = { /*Toolbar(onClickCerrarSesion)*/ },
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(itemsPerRow),
@@ -63,7 +65,7 @@ fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>) {
                             .height(150.dp)
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(model = producto.image),
+                            painter = rememberAsyncImagePainter(model = R.drawable.mayooscar_logo1),
                             contentDescription = "Imagen del producto",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -76,7 +78,7 @@ fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>) {
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text(
-                            text = producto.title,
+                            text = producto.descripcio,
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Normal,
@@ -86,7 +88,7 @@ fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>) {
                         )
 
                         Text(
-                            text = "$${producto.price}",
+                            text = "$${producto.precio}",
                             style = TextStyle(
                                 fontSize = 14.sp,
                                 textDecoration = TextDecoration.LineThrough,
@@ -96,7 +98,7 @@ fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>) {
                         )
 
                         Text(
-                            text = "$${producto.price - (producto.price * 10 / 100)}",
+                            text = "$${producto.precio.toDouble() - (producto.precio.toDouble() * 10 / 100)}",
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold

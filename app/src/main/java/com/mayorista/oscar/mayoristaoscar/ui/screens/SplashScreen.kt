@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.google.firebase.auth.FirebaseAuth
 import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
 import kotlinx.coroutines.delay
@@ -25,7 +26,13 @@ import kotlinx.coroutines.delay
     LaunchedEffect(key1=true){
         delay(5000)
         navController.popBackStack()
-        navController.navigate(route = AppScreens.HomeScreen.route)
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            // El usuario ya está autenticado, redirige a la pantalla principal.
+            navController.navigate(AppScreens.HomeScreen.route)
+        } else {
+            navController.navigate(AppScreens.AuthScreen.route)
+        }
     }
 
     }
@@ -38,7 +45,7 @@ import kotlinx.coroutines.delay
        verticalArrangement = Arrangement.Center)   {
 
            Image(painter = painterResource(id = R.mipmap.ic_mayooscar_foreground,
-           ), modifier = Modifier.width(172.dp).height(172.dp), contentDescription ="Mayorista Oscar Logo" )
+           ), modifier = Modifier.width(245.dp).height(245.dp), contentDescription ="Mayorista Oscar Logo" )
            Text(text = "Mayorista Oscar")
 
        }

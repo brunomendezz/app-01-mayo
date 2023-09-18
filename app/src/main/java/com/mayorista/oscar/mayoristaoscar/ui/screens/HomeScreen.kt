@@ -25,7 +25,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,6 +41,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -58,7 +65,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
-import com.mayorista.oscar.mayoristaoscar.data.model.ProductosEnOferta
+import com.mayorista.oscar.mayoristaoscar.data.model.RespuestaInicioSesion
 
 @Composable
 fun HomeScreen(
@@ -71,10 +78,10 @@ fun HomeScreen(
     onClickWathsApp: () -> Unit,
     onClickScannear: () -> Unit,
     onClickActualizarLista: () -> Unit,
-    productosEnOferta: List<ProductoModel>?
-) {
+    productosEnOferta: List<ProductoModel>?,
+    onClickCerrarSesion:()-> Unit, ) {
     Scaffold(
-        topBar = { Toolbar() }
+        topBar = { Toolbar(onClickCerrarSesion) }
     ) {
         Column(
             modifier = Modifier
@@ -103,7 +110,9 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Toolbar() {
+fun Toolbar(onClickCerrarSesion:()->Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+
     TopAppBar(
         title = {
             Row(
@@ -119,10 +128,53 @@ fun Toolbar() {
                     modifier = Modifier.padding(end = 2.dp)
                 )
             }
+                },
+            actions = {
+            IconButton(
+                onClick = {
+                    showDialog = true
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp, tint = Color.White,
+                    contentDescription = "Cerrar sesión"
+                )
+            }
         },
         colors = topAppBarColors(Color(0xFFE0070F)),
-        modifier = Modifier.shadow(0.dp)
-    )
+        modifier = Modifier.shadow(0.dp))
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDialog = false
+                },
+                text = {
+                    Text(text = "¿Está seguro que desea cerrar sesión?", textAlign = TextAlign.Center)
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                            onClickCerrarSesion()
+
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+                    ) {
+                        Text(text = "Confirmar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+                    ) {
+                        Text(text = "Cancelar")
+                    }
+                })
+        }
 }
 
 
@@ -197,7 +249,7 @@ fun ContentHomeScreen(
                 }
 
             }
-            item {
+           /* item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -206,7 +258,7 @@ fun ContentHomeScreen(
                     CardProductosEnOferta(productosEnOferta,onClickVerTodos)
                 }
 
-            }
+            }*/
 
             item {
                 Box(
@@ -227,7 +279,8 @@ fun ContentHomeScreen(
                 ) {
                     Redes(
                         onClickFacebook = onClickFacebook,
-                        onClickInstagram = onClickInstagram, onClickWhatsApp = onClickWathsApp
+                        onClickInstagram = onClickInstagram,
+                        onClickWhatsApp = onClickWathsApp
                     )
                 }
             }
@@ -357,7 +410,7 @@ fun CardPdf(
                     color = Color.Red,
                     modifier = Modifier
                         .padding(16.dp)
-                        .clickable {onClickActualizarLista() },
+                        .clickable { onClickActualizarLista() },
                     textAlign = TextAlign.Center,
                 )
             }
@@ -597,7 +650,7 @@ fun ProductoCard(producto: ProductoModel) {
                     .fillMaxHeight()
             ) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = producto.image),
+                    painter = rememberAsyncImagePainter(model = R.mipmap.ic_mayooscar_foreground),
                     contentDescription = "Imagen del producto",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -612,13 +665,14 @@ fun ProductoCard(producto: ProductoModel) {
                     .fillMaxHeight()
             ) {
                 Text(
-                    text = producto.title,
+                    text = producto.descripcio,
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
                         textAlign = TextAlign.Center
                     ),
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
                         .width(130.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -626,7 +680,7 @@ fun ProductoCard(producto: ProductoModel) {
                     )
 
                 Text(
-                    text = "$${producto.price}",
+                    text = "$${producto.precio}",
                     style = TextStyle(
                         fontSize = 14.sp,
                         textDecoration = TextDecoration.LineThrough,
@@ -636,7 +690,7 @@ fun ProductoCard(producto: ProductoModel) {
                 )
 
                 Text(
-                    text = "$${producto.price - (producto.price * 10 / 100)}",
+                    text = "$${producto.precio.toDouble() - (producto.precio.toDouble() * 10 / 100)}",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -703,22 +757,24 @@ fun SocialIcon(
 @Composable
 fun BarcodeInfoDialog(
     visible: Boolean,
-    scannedValue: String,
+    scannedValue: ProductoModel?,
     onClose: () -> Unit
 ) {
     AnimatedVisibility(visible = visible) {
         AlertDialog(
             onDismissRequest = onClose,
             title = {
-                Text(
-                    text = "Nombre  del producto escaneado",
-                    style = TextStyle(
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+                if (scannedValue != null) {
+                    Text(
+                        text = scannedValue.descripcio,
+                        style = TextStyle(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
             },
             text = {
                 Column(
@@ -726,29 +782,33 @@ fun BarcodeInfoDialog(
                     verticalArrangement = Arrangement.SpaceBetween,
                     Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "Código de barras escaneado: $scannedValue",
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            textDecoration = TextDecoration.None,
-                        ),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = "$ ??????",
-                        style = TextStyle(
-                            fontSize = 35.sp,
-                            textDecoration = TextDecoration.None,
-                        ),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
+                    if (scannedValue != null) {
+                        Text(
+                            text = "Código de barras escaneado:",
+                            style = TextStyle(
+                                fontSize = 20.sp,
+                                textDecoration = TextDecoration.None,
+                            ),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+                    if (scannedValue != null) {
+                        Text(
+                            textAlign = TextAlign.Center,
+                            text = "$ ${scannedValue.precio}",
+                            style = TextStyle(
+                                fontSize = 35.sp,
+                                textDecoration = TextDecoration.None,
+                            ),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
                 }
 
             },
             confirmButton = {
                 Button(
-                    colors = androidx.compose.material.ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
                     onClick = onClose
                 ) {
                     Text(color = Color.White, text = "Cerrar")

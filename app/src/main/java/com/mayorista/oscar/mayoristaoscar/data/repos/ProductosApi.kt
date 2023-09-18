@@ -1,10 +1,9 @@
 package com.mayorista.oscar.mayoristaoscar.data.repos
 
 import com.mayorista.oscar.mayoristaoscar.data.model.Credenciales
-import com.mayorista.oscar.mayoristaoscar.data.model.Empresa
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 import com.mayorista.oscar.mayoristaoscar.data.model.RespuestaInicioSesion
-import retrofit2.Call
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -16,16 +15,23 @@ interface ProductosApi {
     @GET("/products?limit=150")
     suspend fun getProductosEnOferta(): Response<List<ProductoModel>>
 
-    @GET("/api/articulo-precio/{cod_articu}/perfil/{perfil}")
+    @GET("/api/articulos/")
     suspend fun getInfoProducto(
-        @Path("cod_articu") codArticulo: String,
-        @Path("perfil") perfil: String
+        @Path("cod_articu") codArticulo: Long
     ): Response<ProductoModel>
 
+    @GET("/api/articulo-precio/{cod_articu}/perfil/{cod_perfil?}")
+    suspend fun getPrecioProducto(
+        @Path("cod_articu") codArticulo: String,
+        @Path("cod_perfil") perfil: String
+    ): Response<ProductoModel>
+
+
+
     @POST("/api/login")
-    suspend fun loginApi(@Body credenciales : Credenciales):Response<RespuestaInicioSesion>
+    suspend fun loginApi(@Body crendencial: Credenciales):Response<RespuestaInicioSesion>
 
     @POST("/api/empresa")
     suspend fun loginApiEmpresa( @Header("Authorization") token: String
-                                 ,@Body empresa : Empresa):Response<RespuestaInicioSesion>
+                                 ,@Body IDEmpresa : Int):Response<ResponseBody>
 }

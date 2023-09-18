@@ -1,11 +1,14 @@
 package com.mayorista.oscar.mayoristaoscar
 
+import AuthScreen
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,11 +27,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.zxing.integration.android.IntentIntegrator
+import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
+import com.mayorista.oscar.mayoristaoscar.ui.screens.BarcodeInfoDialog
 import com.mayorista.oscar.mayoristaoscar.ui.screens.HomeScreen
 import com.mayorista.oscar.mayoristaoscar.ui.screens.OfertasScreen
 import com.mayorista.oscar.mayoristaoscar.ui.screens.PantallaMapa
@@ -37,28 +45,27 @@ import com.mayorista.oscar.mayoristaoscar.ui.theme.MayoristaOscarTheme
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
-import android.provider.Settings
-import android.widget.Toast
-import com.google.zxing.integration.android.IntentIntegrator
-import com.mayorista.oscar.mayoristaoscar.ui.screens.BarcodeInfoDialog
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private var resultScan:String=""
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MayoristaOscarTheme {
-                Surface(color =MaterialTheme.colorScheme.background
+                Surface(
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavigation()
                     AskNotificationPermission()
+                    val resultScan by viewModel.infoProducto.observeAsState()
                     val showDialog by viewModel.showDialogPrecio.observeAsState()
+
                     showDialog?.let {
-                        BarcodeInfoDialog(visible = it, scannedValue =resultScan ) {
+                        BarcodeInfoDialog(visible = it, scannedValue = resultScan) {
                             viewModel.ondismisDialog()
                         }
                     }
@@ -73,7 +80,7 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val bytesPDF by viewModel.pdfDocument.observeAsState()
         val vistaPreviaPDF by viewModel.vistaPreviaPDF.observeAsState(null)
-        val productosEnOferta by viewModel.productosEnOferta.observeAsState()
+        val productosEnOferta = listOf(ProductoModel("1", "articulo de prueba", emptyArray(), "2000000.0"))
         val context = this@MainActivity
         val packageManager = context.packageManager
 
@@ -83,35 +90,62 @@ class MainActivity : ComponentActivity() {
                 SplashScreen(navController = navController)
             }
 
+            composable(AppScreens.AuthScreen.route) {
+                AuthScreen(navController)
+            }
+
             composable(AppScreens.HomeScreen.route) {
                 viewModel.screenUbication = "home_screen"
 
                 HomeScreen(
                     imageBitmap = vistaPreviaPDF,
                     onClickPDF = { openPdf(bytesPDF!!, context) },
-                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route)},
+                    onClickSucursal = { navController.navigate(route = AppScreens.MapScreen.route) },
                     onClickVerTodos = { navController.navigate(route = AppScreens.OfertasScreen.route) },
                     onClickFacebook = { abrirFacebook(context) },
                     onClickInstagram = { abrirInstagram(context, packageManager) },
-                    onClickWathsApp = { abrirWhatsApp(context, packageManager)},
-                    onClickScannear = {initScanner()},
-                    onClickActualizarLista = {actualizarLista()},
-                    productosEnOferta = productosEnOferta
+                    onClickWathsApp = { abrirWhatsApp(context, packageManager) },
+                    onClickCerrarSesion = {
+                        cerrarSesionAuth(navController)
+                    },
+                    onClickScannear = { initScanner() },
+                    onClickActualizarLista = { actualizarLista() },
+                    productosEnOferta = productosEnOferta,
 
                     )
             }
 
             composable(AppScreens.MapScreen.route) {
                 viewModel.screenUbication = "map_screen"
-                PantallaMapa(viewModel)
+
+                PantallaMapa(viewModel,
+                    onClickCerrarSesion = {
+                        cerrarSesionAuth(navController)
+                    }
+
+                )
+
             }
 
 
             composable(AppScreens.OfertasScreen.route) {
                 viewModel.screenUbication = "ofertas_screen"
-                productosEnOferta?.let { it1 -> OfertasScreen(it1) }
+                productosEnOferta?.let { it1 ->
+                    OfertasScreen(it1,
+                        onClickCerrarSesion = {
+                            cerrarSesionAuth(navController)
+                        }
+                    )
+                }
             }
         }
+    }
+
+    private fun cerrarSesionAuth(navController: NavController) {
+        navController.popBackStack()
+        FirebaseAuth.getInstance().signOut()
+        navController.navigate(route = AppScreens.AuthScreen.route)
+
     }
 
     private fun actualizarLista() {
@@ -166,7 +200,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-   private fun openPdf(bytes: ByteArray, context: Context) {
+    private fun openPdf(bytes: ByteArray, context: Context) {
         val file = File(context.cacheDir, "Mayorista Oscar.pdf")
         file.writeBytes(bytes)
 
@@ -183,8 +217,6 @@ class MainActivity : ComponentActivity() {
 
         context.startActivity(intent)
     }
-
-
 
 
     // Declare the launcher at the top of your Activity/Fragment:
@@ -214,23 +246,25 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-        private fun openAppSettings(context: Context) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            val uri = Uri.fromParts("package", context.packageName, null)
-            intent.data = uri
-            context.startActivity(intent)
-        }
+    private fun openAppSettings(context: Context) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", context.packageName, null)
+        intent.data = uri
+        context.startActivity(intent)
+    }
 
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     private fun AskNotificationPermission() {
-        val permissionGranted by remember { mutableStateOf(
-            ContextCompat.checkSelfPermission(
-               this@MainActivity,
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) }
+        val permissionGranted by remember {
+            mutableStateOf(
+                ContextCompat.checkSelfPermission(
+                    this@MainActivity,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        }
         var showDialog by remember { mutableStateOf(!permissionGranted) }
 
         if (!permissionGranted) {
@@ -293,7 +327,12 @@ class MainActivity : ComponentActivity() {
 
     private fun initScanner() {
         val integrator = IntentIntegrator(this)
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.EAN_13)
+        integrator.setDesiredBarcodeFormats(
+            IntentIntegrator.EAN_13,
+            IntentIntegrator.EAN_8,
+            IntentIntegrator.CODE_128,
+            IntentIntegrator.CODE_39
+        )
         integrator.setPrompt("Coloque el codigo de barras en el interior del rectangulo del visor para escanear")
         integrator.initiateScan()
     }
@@ -302,14 +341,13 @@ class MainActivity : ComponentActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null && result.contents != null) {
-            resultScan=result.contents
-         viewModel.showDialog()
-            Toast.makeText(this, "Código de barras: $resultScan", Toast.LENGTH_LONG).show()
+            viewModel.getInfoProducto(result.contents)
+            viewModel.showDialog()
+            Toast.makeText(this, "Código de barras: ${result.contents}", Toast.LENGTH_LONG).show()
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
-
 
 
 }

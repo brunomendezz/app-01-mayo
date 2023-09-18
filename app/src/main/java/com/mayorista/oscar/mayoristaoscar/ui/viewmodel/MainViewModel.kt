@@ -15,9 +15,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.mlkit.vision.barcode.common.Barcode
 import com.mayorista.oscar.mayoristaoscar.data.model.Marcador
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductosEnOferta
+import com.mayorista.oscar.mayoristaoscar.data.model.RespuestaInicioSesion
 import com.mayorista.oscar.mayoristaoscar.data.repos.MarcadorRepository
 import com.mayorista.oscar.mayoristaoscar.domain.PdfServices
 import com.mayorista.oscar.mayoristaoscar.domain.ProductoServices
@@ -58,6 +60,12 @@ class MainViewModel @Inject constructor(
 
     private val _showDialogPrecio = MutableLiveData<Boolean>()
     val showDialogPrecio: LiveData<Boolean> = _showDialogPrecio
+
+    private val _infoProducto = MutableLiveData<ProductoModel>()
+    val infoProducto: LiveData<ProductoModel> = _infoProducto
+
+    private val _infoDeSesion = MutableLiveData<String>()
+    val infoDeSesion:LiveData<String> = _infoDeSesion
 
     init {
         viewModelScope.launch {
@@ -118,11 +126,17 @@ class MainViewModel @Inject constructor(
         _showDialogPrecio.value=false
     }
 
-     fun iniciarSesion(){
+     fun getInfoProducto(barcode: String){
          viewModelScope.launch {
-             productoServices.iniciarSesion()
+             _infoProducto.value = productoServices.getInfoProducto(barcode)
          }
-
     }
+
+  /*  private fun iniciarSesion(){
+        viewModelScope.launch {
+            _infoDeSesion.value = productoServices.iniciarSesion().token
+        }
+
+    }*/
 
 }

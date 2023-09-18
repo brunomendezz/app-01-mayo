@@ -11,7 +11,11 @@ class ProductosCloudFirestoreDbaRepository@Inject constructor(private val fireba
         TODO("Not yet implemented")
     }
 
-    override suspend fun getInfoProducto(codeBarcode: Barcode): ProductoModel? {
+    override suspend fun getInfoProducto(codeBarcode: String):ProductoModel {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getPrecioProducto(codInterno: String): String {
         TODO("Not yet implemented")
     }
 }

@@ -55,12 +55,15 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.mayorista.oscar.mayoristaoscar.data.model.Marcador
+import com.mayorista.oscar.mayoristaoscar.data.model.RespuestaInicioSesion
 import com.mayorista.oscar.mayoristaoscar.data.repos.MarcadorRepository
 import com.mayorista.oscar.mayoristaoscar.ui.viewmodel.MainViewModel
 
 @Composable
-fun PantallaMapa(viewModel: MainViewModel) {
-    ViewContainerMap(viewModel)
+fun PantallaMapa(viewModel: MainViewModel,
+onClickCerrarSesion:()->Unit
+                 ) {
+    ViewContainerMap(viewModel, onClickCerrarSesion)
 }
 
 @Composable
@@ -102,7 +105,8 @@ fun MapScreen(currentUbication: Marcador) {
 
 
 @Composable
-fun ViewContainerMap(viewModel: MainViewModel) {
+fun ViewContainerMap(viewModel: MainViewModel,
+onClickCerrarSesion:()->Unit) {
 
 
     var mUbicacionSeleccionada by remember {
@@ -110,7 +114,7 @@ fun ViewContainerMap(viewModel: MainViewModel) {
     }
 
     Scaffold(
-        topBar = { Toolbar() },
+        topBar = { Toolbar(onClickCerrarSesion) },
         bottomBar ={}
     ) {
         Box(
