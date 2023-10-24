@@ -31,13 +31,15 @@ import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 
 
 @Composable
-fun OfertasScreen(listaDeProductosEnOferta: List<ProductoModel>,onClickCerrarSesion: () -> Unit) {
-    ViewContainer(listaDeProductosEnOferta, onClickCerrarSesion )
+fun OfertasScreen(listaDeProductosEnOferta: List<ProductoModel>, onClickCerrarSesion: () -> Unit) {
+    ViewContainer(listaDeProductosEnOferta, onClickCerrarSesion)
 }
 
 @Composable
-fun ViewContainer(listaDeProductosEnOferta: List<ProductoModel>,
-onClickCerrarSesion:()->Unit) {
+fun ViewContainer(
+    listaDeProductosEnOferta: List<ProductoModel>,
+    onClickCerrarSesion: () -> Unit
+) {
     val itemsPerRow = 2
 
 
@@ -65,7 +67,7 @@ onClickCerrarSesion:()->Unit) {
                             .height(150.dp)
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(model = R.drawable.mayooscar_logo1),
+                            painter = rememberAsyncImagePainter(model = R.mipmap.ic_mayooscar_foreground),
                             contentDescription = "Imagen del producto",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

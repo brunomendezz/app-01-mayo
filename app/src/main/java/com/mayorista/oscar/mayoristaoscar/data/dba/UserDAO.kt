@@ -1,6 +1,5 @@
 package com.mayorista.oscar.mayoristaoscar.data.dba
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -16,4 +15,5 @@ interface UserDAO {
 
     @Query("DELETE FROM pdf")
     suspend fun deletePdf()
+
 }

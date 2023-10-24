@@ -38,6 +38,7 @@ import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
 import com.mayorista.oscar.mayoristaoscar.navigation.AppScreens
 import com.mayorista.oscar.mayoristaoscar.ui.screens.BarcodeInfoDialog
 import com.mayorista.oscar.mayoristaoscar.ui.screens.HomeScreen
+import com.mayorista.oscar.mayoristaoscar.ui.screens.LoadingDialog
 import com.mayorista.oscar.mayoristaoscar.ui.screens.OfertasScreen
 import com.mayorista.oscar.mayoristaoscar.ui.screens.PantallaMapa
 import com.mayorista.oscar.mayoristaoscar.ui.screens.SplashScreen
@@ -62,15 +63,21 @@ class MainActivity : ComponentActivity() {
                     AppNavigation()
                     AskNotificationPermission()
                     val resultScan by viewModel.infoProducto.observeAsState()
-                    val showDialog by viewModel.showDialogPrecio.observeAsState()
+                    val showDialogProgress by viewModel.showDialogCircularProgres.observeAsState(
+                        false
+                    )
+                    val dataLoaded by viewModel.dataLoaded.observeAsState(false)
 
-                    showDialog?.let {
-                        BarcodeInfoDialog(visible = it, scannedValue = resultScan) {
-                            viewModel.ondismisDialog()
-                        }
+                    LoadingDialog(showDialogProgress)
+
+                    BarcodeInfoDialog(
+                        scannedValue = resultScan,
+                        dataLoaded = dataLoaded
+                    ) {
+                        viewModel.ondismisDialogProgress()
                     }
-
                 }
+
             }
         }
     }
@@ -80,9 +87,11 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val bytesPDF by viewModel.pdfDocument.observeAsState()
         val vistaPreviaPDF by viewModel.vistaPreviaPDF.observeAsState(null)
-        val productosEnOferta = listOf(ProductoModel("1", "articulo de prueba", emptyArray(), "2000000.0"))
+        val productosEnOferta = listOf(ProductoModel("1", "articulo de prueba", "2000000.0"))
         val context = this@MainActivity
         val packageManager = context.packageManager
+        val ultimaActualizacion by viewModel.ultimaActualizacion.observeAsState("N/A")
+        val listaActuliazando by viewModel.listaActualizando.observeAsState(false)
 
         NavHost(navController = navController, startDestination = AppScreens.SplashScreen.route) {
 
@@ -111,6 +120,8 @@ class MainActivity : ComponentActivity() {
                     onClickScannear = { initScanner() },
                     onClickActualizarLista = { actualizarLista() },
                     productosEnOferta = productosEnOferta,
+                    listaActualizando = listaActuliazando,
+                    ultimaActualizacion = ultimaActualizacion
 
                     )
             }
@@ -149,11 +160,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun actualizarLista() {
-        Snackbar.make(
-            findViewById(android.R.id.content),
-            "Funcionalidad no disponible por el momento.",
-            Snackbar.LENGTH_LONG
-        ).show()
+        viewModel.actualizarListaDePrecios()
     }
 
     private fun abrirFacebook(context: Context) {
@@ -342,12 +349,10 @@ class MainActivity : ComponentActivity() {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null && result.contents != null) {
             viewModel.getInfoProducto(result.contents)
-            viewModel.showDialog()
+            viewModel.showDialogProgress()
             Toast.makeText(this, "Código de barras: ${result.contents}", Toast.LENGTH_LONG).show()
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
-
-
 }

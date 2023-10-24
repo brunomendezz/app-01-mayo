@@ -61,11 +61,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.mayorista.oscar.mayoristaoscar.R
 import com.mayorista.oscar.mayoristaoscar.data.model.ProductoModel
-import com.mayorista.oscar.mayoristaoscar.data.model.RespuestaInicioSesion
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @Composable
 fun HomeScreen(
@@ -79,7 +81,9 @@ fun HomeScreen(
     onClickScannear: () -> Unit,
     onClickActualizarLista: () -> Unit,
     productosEnOferta: List<ProductoModel>?,
-    onClickCerrarSesion:()-> Unit, ) {
+    onClickCerrarSesion:()-> Unit,
+    listaActualizando: Boolean,
+    ultimaActualizacion: String) {
     Scaffold(
         topBar = { Toolbar(onClickCerrarSesion) }
     ) {
@@ -99,7 +103,9 @@ fun HomeScreen(
                     onClickWathsApp,
                     onClickScannear,
                     onClickActualizarLista,
-                    productosEnOferta
+                    productosEnOferta,
+                    listaActualizando,
+                    ultimaActualizacion
                 )
             }
         }
@@ -189,7 +195,10 @@ fun ContentHomeScreen(
     onClickWathsApp: () -> Unit,
     onClickScannear: () -> Unit,
     onClickActualizarLista: () -> Unit,
-    productosEnOferta: List<ProductoModel>
+    productosEnOferta: List<ProductoModel>,
+    listaActualizando: Boolean,
+    ultimaActualizacion: String
+
 ) {
     Box(
         modifier = Modifier
@@ -223,7 +232,9 @@ fun ContentHomeScreen(
                     CardPdf(
                         imageBitmap = imageBitmap,
                         onClick = onClick,
-                        onClickActualizarLista = onClickActualizarLista
+                        onClickActualizarLista = onClickActualizarLista,
+                        ultimaActualizacion = ultimaActualizacion,
+                        listaActualizando = listaActualizando
                     )
                 }
 
@@ -351,73 +362,106 @@ fun ScannearProducto(onClickScannear: () -> Unit) {
 fun CardPdf(
     imageBitmap: ImageBitmap?,
     onClick: () -> Unit,
-    onClickActualizarLista: () -> Unit
+    onClickActualizarLista: () -> Unit,
+    listaActualizando: Boolean,
+    ultimaActualizacion: String
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-
-
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             elevation = CardDefaults.elevatedCardElevation(8.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Precios",
+                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .weight(1f) // Peso 1 para "Precios"
+                    )
 
-            Text(
-                text = "Precios",
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(16.dp)
-            )
-            Divider(
-                modifier = Modifier
-                    .fillMaxWidth(), thickness = 1.dp
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-            ) {
-
-                MostrarVistaPreviaPDF(imageBitmap = imageBitmap) { onClick() }
-
-            }
-
-            Row(modifier = Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-
-                Text(
-                    text = "Abrir PDF",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        textDecoration = TextDecoration.Underline,
-                    ),
-                    color = Color.Red,
+                    Text(
+                        text = "Últ. act: $ultimaActualizacion",
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        ),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                Divider(
                     modifier = Modifier
-                        .padding(16.dp)
-                        .clickable { onClick() },
-                    textAlign = TextAlign.Center,
+                        .fillMaxWidth(),
+                    thickness = 1.dp
                 )
-                Text(
-                    text = "Actualizar lista",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        textDecoration = TextDecoration.Underline,
-                    ),
-                    color = Color.Red,
+
+                Box(
                     modifier = Modifier
-                        .padding(16.dp)
-                        .clickable { onClickActualizarLista() },
-                    textAlign = TextAlign.Center,
-                )
+                        .fillMaxSize()
+                        .background(Color.White)
+                ) {
+
+                    if (listaActualizando) {
+                        Box(modifier = Modifier.fillMaxWidth()
+                            .height(220.dp)) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .height(100.dp)
+                                    .width(100.dp)
+                                    .padding(vertical = 15.dp)
+                                    .align(Alignment.Center)
+                            )
+                        }
+                    } else {
+                        MostrarVistaPreviaPDF(imageBitmap = imageBitmap) { onClick() }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Abrir PDF",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            textDecoration = TextDecoration.Underline,
+                        ),
+                        color = Color.Red,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clickable { onClick() },
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Actualizar lista",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            textDecoration = TextDecoration.Underline,
+                        ),
+                        color = Color.Red,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clickable { onClickActualizarLista() },
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuestrasSucursalesCard(onClick: () -> Unit) {
@@ -752,59 +796,99 @@ fun SocialIcon(
         contentScale = ContentScale.Fit
     )
 }
+@Composable
+fun LoadingDialog(showDialog: Boolean) {
+    AnimatedVisibility(visible = showDialog) {
+        val loadingText = "Espere por favor.."
+        AlertDialog(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .padding(15.dp),
+            onDismissRequest = { /* No hacer nada al tocar fuera del diálogo */ },
+            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+            title = {
+                Box(modifier = Modifier
+                    .height(105.dp)
+                    .fillMaxWidth(),
+                    contentAlignment = Alignment.Center){
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .wrapContentSize(Alignment.Center)
+                            .height(75.dp)
+                            .width(75.dp)
+                            .padding(8.dp)
+                    )
+                }
 
+
+            },
+            text = {
+                Text(
+                    text = loadingText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                )
+            },
+            buttons = {}
+        )
+    }
+}
 
 @Composable
 fun BarcodeInfoDialog(
-    visible: Boolean,
+
     scannedValue: ProductoModel?,
+    dataLoaded: Boolean,
     onClose: () -> Unit
 ) {
-    AnimatedVisibility(visible = visible) {
+    AnimatedVisibility(visible = dataLoaded) {
+
         AlertDialog(
+            modifier = Modifier.wrapContentSize(),
             onDismissRequest = onClose,
             title = {
-                if (scannedValue != null) {
-                    Text(
-                        text = scannedValue.descripcio,
-                        style = TextStyle(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Normal,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
+                Text(
+                    text = scannedValue?.descripcio ?: "",
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(8.dp)
+                )
+
             },
             text = {
                 Column(
-                    modifier = Modifier.wrapContentSize(),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (scannedValue != null) {
-                        Text(
-                            text = "Código de barras escaneado:",
-                            style = TextStyle(
-                                fontSize = 20.sp,
-                                textDecoration = TextDecoration.None,
-                            ),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                    }
-                    if (scannedValue != null) {
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = "$ ${scannedValue.precio}",
-                            style = TextStyle(
-                                fontSize = 35.sp,
-                                textDecoration = TextDecoration.None,
-                            ),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                    }
-                }
+                    Text(
+                        text = "Artículo: ${scannedValue?.cod_articu ?: ""}",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            textDecoration = TextDecoration.None,
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
 
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = "$ ${scannedValue?.precio ?: ""}",
+                        style = TextStyle(
+                            fontSize = 35.sp,
+                            textDecoration = TextDecoration.None,
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                }
             },
             confirmButton = {
                 Button(

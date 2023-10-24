@@ -33,4 +33,15 @@ class PdfServices @Inject constructor(var repoC: PdfCloudStorageRepository, var 
             pdfFromDb
         }
     }
+
+    suspend fun actualizarLista():PdfModelMayo?{
+        val pdfFromCloud = repoC.getPdf()
+        if (pdfFromCloud!=null){
+            repoDba.savePdf(pdfFromCloud)
+            return pdfFromCloud
+        }
+        return null
+    }
+
+
 }

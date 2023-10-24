@@ -6,6 +6,7 @@ import com.mayorista.oscar.mayoristaoscar.data.dba.UserDAO
 import com.mayorista.oscar.mayoristaoscar.data.model.PdfModelMayo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.sql.Date
 import javax.inject.Inject
 
 class PdfDbaRepository @Inject constructor(
@@ -19,6 +20,7 @@ class PdfDbaRepository @Inject constructor(
     }
     suspend fun savePdf(pdfFromCloud: PdfModelMayo) {
         Log.i("bruno", "savePdf: entre a guardar pdf")
+        dba.deletePdf()
         dba.savePdf(pdfFromCloud)
     }
 }

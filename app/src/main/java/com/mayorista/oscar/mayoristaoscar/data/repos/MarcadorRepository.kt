@@ -20,11 +20,4 @@ class MarcadorRepository @Inject constructor(){
         return ubicaciones.toMutableList()
     }
 
-    fun borrarUbicacion(ubicacion: Marcador){
-        ubicaciones.remove(ubicacion)
-    }
-
-    fun agregarUbicacion(ubicacion:List<Marcador>){
-        ubicaciones.addAll(ubicacion)
-    }
 }

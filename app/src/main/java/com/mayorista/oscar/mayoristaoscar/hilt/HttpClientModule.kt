@@ -22,7 +22,7 @@ class HttpClientModule {
     @Provides
     fun retrofitBuilder(): Builder {
 
-       val token = "30|wVS3NbIrLpWCPEvmBzp03dczSs9OR4LUkC9ME23T"
+        val token = "TOKEN JE"
         return Builder()
             .client(OkHttpClient.Builder()
                 .addInterceptor(AuthInterceptor(token))

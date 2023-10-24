@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.Retrofit.Builder
 import javax.inject.Inject
 
-class ProductosRestRepositoryo @Inject constructor(builder: Builder) : ProductosRepository {
+class ProductosRestRepository @Inject constructor(builder: Builder) : ProductosRepository {
 
     var retrofit: Retrofit = builder.build()
 
@@ -33,26 +33,41 @@ class ProductosRestRepositoryo @Inject constructor(builder: Builder) : Productos
     }
 
 
-    override suspend fun getInfoProducto(codeBarcode: String): ProductoModel? {
-     //   val token = "30|wVS3NbIrLpWCPEvmBzp03dczSs90R4LUkC9ME23T"
+    override suspend fun getInfoProducto(codeBarcode: String): ProductoModel {
 
         try {
             val productoApi = retrofit.create(ProductosApi::class.java)
-            val request = productoApi.getInfoProducto(
-                codArticulo = 7791290792401
-            )
+            val response = productoApi.getInfoProducto(codeBarcode)
 
-            if (request.isSuccessful) {
-                val responseBody = request.body()
-                    val codigoInterno = responseBody?.cod_articu!!
-                    val descripcion = responseBody.descripcio!!
+            if (response.isSuccessful) {
+                val producto = response.body()?.get(0)
+                if (producto != null) {
+                    val precio = getPrecioProducto(producto.cod_articu)
+                    val precioDouble = precio.toDoubleOrNull()
 
-                    val producto = ProductoModel(codigoInterno,descripcion)
-                    return producto
+                    if (precioDouble != null) {
+                        // Formatear el precio a dos decimales
+                        val precioFormateado = String.format("%.2f", precioDouble)
+                        return ProductoModel(
+                            producto.cod_articu,
+                            producto.descripcio,
+                            precioFormateado
+                        )
+                    }else{
+                        return ProductoModel(
+                            producto.cod_articu,
+                            producto.descripcio,
+                            precio
+                        )
+                    }
+
+                } else {
+                    Log.e("ProductosRestRepository", "El cuerpo de la respuesta es nulo.")
+                }
             } else {
                 Log.e(
                     "ProductosRestRepository",
-                    "La solicitud no fue exitosa. Código HTTP: ${request.code()}"
+                    "La solicitud no fue exitosa. Código HTTP: ${response.code()}"
                 )
             }
         } catch (e: IOException) {
@@ -60,12 +75,12 @@ class ProductosRestRepositoryo @Inject constructor(builder: Builder) : Productos
         } catch (e: Exception) {
             Log.e("ProductosRestRepository", "Excepción general: ${e.message}")
         }
-        return ProductoModel("descripcion no disponible", "descripcion no disponible")
+
+        return ProductoModel("Código interno no disponible.", "Descripción no disponible.")
     }
 
 
     override suspend fun getPrecioProducto(codInterno: String): String {
-        val token = "30|wVS3NbIrLpWCPEvmBzp03dczSs90R4LUkC9ME23T"
         try {
             val productoApi = retrofit.create(ProductosApi::class.java)
             val call = productoApi.getPrecioProducto(codArticulo = codInterno, perfil = "PARCIAL")
@@ -73,9 +88,11 @@ class ProductosRestRepositoryo @Inject constructor(builder: Builder) : Productos
             if (call.isSuccessful) {
                 val body = call.body()
                 if (body != null) {
-                    return body.ventas[0].precio
+                    val precio = body[0].ventas[0].precio
+
+                    return precio
                 } else {
-                    Log.e("ProductosRestRepository", "El precio del producto no está disponible")
+                    Log.e("ProductosRestRepository", "El precio no está disponible.")
                 }
             } else {
                 Log.e(
@@ -88,73 +105,6 @@ class ProductosRestRepositoryo @Inject constructor(builder: Builder) : Productos
         } catch (e: Exception) {
             Log.e("ProductosRestRepository", "Excepción general: ${e.message}")
         }
-
-        // En caso de error o excepción, regresa un valor predeterminado, como 0.0.
-        return "El precio del producto no esta disponible"
+        return "El precio no está disponible."
     }
-
-
-
-  /*  suspend fun iniciarSesion(): RespuestaInicioSesion {
-        try {
-            val productoApi = retrofit.create(ProductosApi::class.java)
-            val call = productoApi.loginApi(Credenciales("supervisor", "123456"))
-
-            Log.i("ApiRest", "Código de respuesta: ${call.code()}")
-            Log.i("ApiRest", "Cuerpo de respuesta: ${call.body()}")
-            Log.i("ApiRest", "Encabezados de respuesta: ${call.headers()}")
-
-            if (call.isSuccessful) {
-                if (call.body()!=null) {
-                    return RespuestaInicioSesion(call.body()!!.token)
-                } else {
-                    Log.e("ProductosRestRepository", "La respuesta del servidor está vacía")
-                }
-            } else {
-                Log.e(
-                    "ProductosRestRepository",
-                    "Inicio de sesión fallido. Código de error: ${call.code()},"
-                )
-            }
-        } catch (e: IOException) {
-            Log.e("ProductosRestRepository", "Excepción de IO: ${e.message}")
-        } catch (e: Exception) {
-            Log.e("ProductosRestRepository", "Excepción general: ${e.message}")
-        }
-
-        // En caso de error o excepción, puedes devolver un objeto JSONObject vacío.
-        return RespuestaInicioSesion("no devolvio token")
-    }*/
-
-  /*  suspend fun loginEmpresa(): String {
-        val token = "24|MLW0kGTuexpBME8znam9XjTqzL8CAueWGUBM1aMc"
-        val empresa = 2
-        try {
-            val productoApi = retrofit.create(ProductosApi::class.java)
-            val call = productoApi.loginApiEmpresa(token, empresa)
-            Log.i("ApiRest", "Código de respuesta: ${call.code()}")
-            Log.i("ApiRest", "Cuerpo de respuesta: ${call.body()}")
-            Log.i("ApiRest", "Encabezados de respuesta: ${call.headers()}")
-
-            if (call.isSuccessful) {
-                val responseBody = call.body()?.string()
-                if (responseBody != null) {
-                    val jsonObject = JSONObject(responseBody)
-                    return jsonObject.toString(4)
-                } else {
-                    Log.e("ApiRest", "La respuesta del servidor está vacía")
-                }
-            } else {
-                Log.e("ApiRest", "Logeo de empresa fallido. Código de error: ${call.code()}")
-            }
-        } catch (e: IOException) {
-            Log.e("ApiRest", "Excepción de IO: ${e.message}")
-        } catch (e: Exception) {
-            Log.e("ApiRest", "Excepción general: ${e.message}")
-        }
-
-        // En caso de error o excepción, puedes devolver una cadena de texto vacía o un mensaje de error.
-        return "fallo el login empresa"
-    }*/
 }
-
