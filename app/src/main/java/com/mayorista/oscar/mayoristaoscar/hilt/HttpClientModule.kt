@@ -28,7 +28,7 @@ class HttpClientModule {
                 .addInterceptor(AuthInterceptor(token))
                 .connectTimeout(10, TimeUnit.SECONDS) // Tiempo de espera para la conexión
                 .readTimeout(10, TimeUnit.SECONDS).build())
-            .baseUrl("http://192.168.2.51:8000")
+            .baseUrl("direccion api")
             .addConverterFactory(GsonConverterFactory.create())
     }
 
